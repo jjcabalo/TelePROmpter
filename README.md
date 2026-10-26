@@ -27,11 +27,11 @@ You don't need to install anything or host a server. You can run TelePROmpter si
 
 1. Open your favorite web browser (Google Chrome, Microsoft Edge, Safari, or Firefox).
 2. Click the browser's address bar at the top.
-3. Type or paste the direct path to the file and press **Enter**:
+3. Type or paste the path where you saved the file and press **Enter**:
    ```text
-   C:\Users\John Jervys\Downloads\Teleprompter\TelePROmpter.html
+   C:\path\to\your\folder\TelePROmpter.html
    ```
-   *(Alternatively, you can simply drag the `TelePROmpter.html` file and drop it into any open browser window).*
+   *(Or simply drag and drop `TelePROmpter.html` directly into any open browser window, or right-click the file and select **Open with** > your preferred browser).*
 4. Press **F** to enter full screen, and you are ready to record or present!
 
 ---

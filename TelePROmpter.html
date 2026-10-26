@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TelePROmpter</title>
+  <!-- Tab Icon: Black background with crisp white teleprompter graphic -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2716%27%20fill%3D%27%23000000%27%2F%3E%3Cpolygon%20points%3D%2712%2C32%2022%2C24%2022%2C40%27%20fill%3D%27%23ffffff%27%2F%3E%3Cline%20x1%3D%2726%27%20y1%3D%2732%27%20x2%3D%2752%27%20y2%3D%2732%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%274.5%27%20stroke-linecap%3D%27round%27%2F%3E%3Cline%20x1%3D%2716%27%20y1%3D%2719%27%20x2%3D%2748%27%20y2%3D%2719%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%273.5%27%20stroke-linecap%3D%27round%27%20opacity%3D%270.7%27%2F%3E%3Cline%20x1%3D%2716%27%20y1%3D%2745%27%20x2%3D%2748%27%20y2%3D%2745%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%273.5%27%20stroke-linecap%3D%27round%27%20opacity%3D%270.7%27%2F%3E%3C%2Fsvg%3E">
+  <style>
+    :root {
+      /* Shared Accent Blue */
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-focus: #3b82f6;
+
+      /* Dark Mode Palette (Default) */
+      --bg-color: #000000;
+      --text-color: #ffffff;
+      --hud-bg: rgba(20, 20, 20, 0.85);
+      --hud-border: rgba(255, 255, 255, 0.15);
+      --hud-text: #ffffff;
+      --hud-subtext: #888888;
+      --btn-bg: rgba(255, 255, 255, 0.1);
+      --btn-border: rgba(255, 255, 255, 0.15);
+      --btn-hover: rgba(255, 255, 255, 0.2);
+      --btn-text: #ffffff;
+      --card-bg: rgba(20, 20, 20, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --modal-box-bg: #121212;
+      --modal-border: rgba(255, 255, 255, 0.2);
+      --modal-text: #ffffff;
+      --input-bg: #1a1a1a;
+      --input-border: #333333;
+      --countdown-bg: rgba(0, 0, 0, 0.65);
+      --scrollbar-thumb: rgba(255, 255, 255, 0.22);
+      --scrollbar-track: rgba(255, 255, 255, 0.03);
+
+      /* Typography & Layout */
+      --font-size: 52px;
+      --line-height: 1.5;
+      --content-width: 900px;
+    }
+
+    [data-theme="light"] {
+      /* Light Mode Palette */
+      --bg-color: #ffffff;
+      --text-color: #0f172a;
+      --hud-bg: rgba(255, 255, 255, 0.9);
+      --hud-border: rgba(0, 0, 0, 0.12);
+      --hud-text: #0f172a;
+      --hud-subtext: #64748b;
+      --btn-bg: rgba(0, 0, 0, 0.06);
+      --btn-border: rgba(0, 0, 0, 0.12);
+      --btn-hover: rgba(0, 0, 0, 0.12);
+      --btn-text: #0f172a;
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(0, 0, 0, 0.1);
+      --modal-box-bg: #ffffff;
+      --modal-border: rgba(0, 0, 0, 0.15);
+      --modal-text: #0f172a;
+      --input-bg: #f8fafc;
+      --input-border: #cbd5e1;
+      --countdown-bg: rgba(255, 255, 255, 0.75);
+      --scrollbar-thumb: rgba(0, 0, 0, 0.2);
+      --scrollbar-track: rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* Teleprompter Scroll Container */
+    #viewport {
+      width: 100%;
+      height: 100%;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      scroll-behavior: auto;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+      position: relative;
+      touch-action: pan-y;
+    }
+    #viewport::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
+    }
+
+    #prompter-content {
+      max-width: var(--content-width);
+      margin: 0 auto;
+      padding: 40vh 24px 70vh 24px;
+      font-size: var(--font-size);
+      line-height: var(--line-height);
+      font-weight: 600;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      transition: transform 0.2s ease, font-size 0.1s ease, max-width 0.2s ease, color 0.2s ease;
+      transform-origin: center top;
+    }
+
+    /* Flip / Mirror Transforms */
+    .mirror-h {
+      transform: scaleX(-1);
+    }
+    .mirror-v {
+      transform: scaleY(-1);
+    }
+    .mirror-both {
+      transform: scale(-1, -1);
+    }
+
+    /* Eye Tracking Marker / Guide Line (Signature Blue) */
+    #guide-overlay {
+      position: fixed;
+      top: 35%;
+      left: 0;
+      width: 100%;
+      height: 0;
+      pointer-events: none;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      transition: opacity 0.2s ease;
+    }
+    #guide-overlay.hidden {
+      opacity: 0;
+    }
+    .guide-line {
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.35) 15%, rgba(59, 130, 246, 0.85) 50%, rgba(37, 99, 235, 0.35) 85%, transparent);
+      box-shadow: 0 0 8px rgba(37, 99, 235, 0.7), 0 0 16px rgba(59, 130, 246, 0.35);
+    }
+    .guide-arrow {
+      position: absolute;
+      left: 14px;
+      width: 0;
+      height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 14px solid var(--accent);
+      filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.85));
+    }
+    .guide-arrow-right {
+      position: absolute;
+      right: 14px;
+      width: 0;
+      height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-right: 14px solid var(--accent);
+      filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.85));
+    }
+
+    /* HUD Controls (Bottom Middle) - Disappears in-place without lowering */
+    #hud {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--hud-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--hud-border);
+      border-radius: 9999px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 100;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      transition: opacity 0.2s ease, visibility 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+    }
+    /* When H is pressed, disappear directly without lowering down */
+    #hud.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .btn {
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
+      color: var(--btn-text);
+      padding: 8px 14px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+    .btn:hover {
+      background: var(--btn-hover);
+      border-color: rgba(37, 99, 235, 0.4);
+    }
+    .btn:active {
+      transform: scale(0.96);
+    }
+    .btn-primary {
+      background: var(--accent) !important;
+      border-color: var(--accent-focus) !important;
+      color: #ffffff !important;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover) !important;
+    }
+    .btn-icon {
+      padding: 8px;
+      width: 36px;
+      height: 36px;
+      justify-content: center;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Sliders & Values */
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--hud-subtext);
+    }
+    .control-group span {
+      min-width: 42px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--hud-text);
+      font-weight: 600;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 90px;
+      height: 6px;
+      background: var(--scrollbar-thumb);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(37, 99, 235, 0.6);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+
+    /* Top Floating Status Bar */
+    #top-bar {
+      position: fixed;
+      top: 16px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 90;
+      pointer-events: none;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+    #top-bar.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .timer-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--hud-text);
+      display: flex;
+      gap: 12px;
+      pointer-events: auto;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      transition: background-color 0.2s ease, color 0.2s ease;
+      white-space: nowrap;
+    }
+    .lbl-short {
+      display: none;
+    }
+    .lbl-full {
+      display: inline;
+    }
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+      align-items: center;
+    }
+
+    /* Modals Backdrop & Box */
+    #settings-modal, #editor-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+    #settings-modal.active, #editor-modal.active {
+      display: flex;
+    }
+    .modal-box {
+      background: var(--modal-box-bg);
+      border: 1px solid var(--modal-border);
+      color: var(--modal-text);
+      border-radius: 16px;
+      padding: 28px;
+      width: 90%;
+      max-width: 650px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      user-select: text;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      scrollbar-width: thin;
+      scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    }
+    .modal-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    .modal-box::-webkit-scrollbar-track {
+      background: var(--scrollbar-track);
+      border-radius: 9999px;
+    }
+    .modal-box::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: 9999px;
+    }
+    .modal-box::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: var(--hud-subtext);
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+      transition: color 0.15s ease;
+    }
+    .close-btn:hover {
+      color: var(--modal-text);
+    }
+
+    /* Script Editor Popup - Custom Scrollbar & Aesthetics */
+    #script-textarea {
+      width: 100%;
+      height: 360px;
+      max-height: 55vh;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      color: var(--modal-text);
+      font-size: 16px;
+      line-height: 1.65;
+      padding: 16px 18px;
+      outline: none;
+      resize: vertical;
+      font-family: inherit;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease, color 0.2s ease;
+      scrollbar-width: thin;
+      scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+      scroll-behavior: smooth;
+    }
+    #script-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+    }
+    #script-textarea::-webkit-scrollbar {
+      width: 6px;
+    }
+    #script-textarea::-webkit-scrollbar-track {
+      background: var(--scrollbar-track);
+      border-radius: 9999px;
+    }
+    #script-textarea::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: 9999px;
+    }
+    #script-textarea::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    /* Settings rows */
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--btn-border);
+    }
+    .setting-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .setting-subtext {
+      font-size: 12px;
+      color: var(--hud-subtext);
+      margin-top: 2px;
+    }
+    .color-picker-group {
+      display: flex;
+      gap: 10px;
+    }
+    .color-swatch {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+    }
+    .color-swatch:hover {
+      transform: scale(1.15);
+    }
+    .color-swatch.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    /* Countdown Overlay (Blue Glow) */
+    #countdown-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: var(--countdown-bg);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 150;
+      font-size: 160px;
+      font-weight: 800;
+      color: var(--accent);
+      text-shadow: 0 0 45px rgba(37, 99, 235, 0.75), 0 0 90px rgba(59, 130, 246, 0.4);
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+    #countdown-overlay.active {
+      display: flex;
+    }
+
+    /* Keyboard Shortcuts Pill on Bottom Right (Desktop Only) */
+    #hud-hint {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      font-size: 12px;
+      color: var(--hud-subtext);
+      background: var(--card-bg);
+      backdrop-filter: blur(8px);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      pointer-events: none;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+    #hud-hint.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* Custom Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider-toggle {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--btn-border);
+      transition: .2s;
+      border-radius: 24px;
+    }
+    .slider-toggle:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #ffffff;
+      transition: .2s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    input:checked + .slider-toggle {
+      background-color: var(--accent);
+    }
+    input:checked + .slider-toggle:before {
+      transform: translateX(20px);
+    }
+
+    /* ==========================================================================
+       MOBILE RESPONSIVENESS (<= 768px and <= 480px)
+       Strictly active on mobile/tablets without altering the PC view at all!
+       ========================================================================== */
+    @media (max-width: 768px) {
+      /* Top Bar: compact spacing and clean touch-friendly buttons */
+      #top-bar {
+        top: 10px;
+        left: 12px;
+        right: 12px;
+        gap: 8px;
+      }
+      .timer-card {
+        padding: 5px 10px;
+        font-size: 11px;
+        gap: 8px;
+      }
+      .lbl-full {
+        display: none;
+      }
+      .lbl-short {
+        display: inline;
+      }
+      #btn-edit {
+        padding: 8px;
+        width: 36px;
+        height: 36px;
+        justify-content: center;
+        border-radius: 50%;
+      }
+      #btn-edit .btn-label {
+        display: none;
+      }
+      .top-actions {
+        gap: 6px;
+      }
+
+      /* Prompter Content: comfortable reading font and margin for mobile screens */
+      #prompter-content {
+        font-size: clamp(22px, calc(var(--font-size) * 0.65), 44px);
+        line-height: calc(var(--line-height) * 1.05);
+        padding: 30vh 20px 65vh 20px;
+        max-width: 100%;
+      }
+
+      /* Eye tracking guide arrows on mobile */
+      .guide-arrow {
+        left: 6px;
+        border-top-width: 8px;
+        border-bottom-width: 8px;
+        border-left-width: 11px;
+      }
+      .guide-arrow-right {
+        right: 6px;
+        border-top-width: 8px;
+        border-bottom-width: 8px;
+        border-right-width: 11px;
+      }
+
+      /* HUD Controls: 2 compact, beautifully organized rows */
+      #hud {
+        width: calc(100% - 24px);
+        max-width: 420px;
+        border-radius: 22px;
+        padding: 10px 14px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 10px 8px;
+        bottom: 14px;
+      }
+      #btn-play-pause {
+        order: 1;
+        flex: 1 1 45%;
+        min-width: 110px;
+        justify-content: center;
+        padding: 9px 14px;
+        font-size: 15px;
+      }
+      #btn-rewind {
+        order: 2;
+        width: 40px;
+        height: 40px;
+      }
+      #btn-mirror {
+        order: 3;
+        width: 40px;
+        height: 40px;
+      }
+      #group-speed {
+        order: 4;
+        flex: 1 1 46%;
+        justify-content: center;
+        gap: 6px;
+      }
+      #group-size {
+        order: 5;
+        flex: 1 1 46%;
+        justify-content: center;
+        gap: 6px;
+      }
+      #group-speed input[type="range"],
+      #group-size input[type="range"] {
+        width: 68px;
+      }
+      .control-group span {
+        font-size: 11px;
+        min-width: 32px;
+      }
+
+      /* Hide keyboard shortcut pill on touch mobile */
+      #hud-hint {
+        display: none;
+      }
+
+      /* Modals on Mobile */
+      .modal-box {
+        width: 95%;
+        max-width: 95%;
+        padding: 20px 16px;
+        max-height: 90vh;
+        border-radius: 16px;
+      }
+      .modal-header h2 {
+        font-size: 18px;
+      }
+      #script-textarea {
+        height: 240px;
+        max-height: 48vh;
+        font-size: 15px;
+        padding: 12px;
+      }
+      .setting-row {
+        padding: 10px 0;
+        gap: 8px;
+      }
+      .setting-label {
+        font-size: 13px;
+      }
+      .setting-subtext {
+        font-size: 11px;
+      }
+      .color-picker-group {
+        gap: 6px;
+      }
+      .color-swatch {
+        width: 24px;
+        height: 24px;
+      }
+      .setting-row .control-group input[type="range"] {
+        width: 72px;
+      }
+      .setting-row .control-group span {
+        min-width: 34px;
+        font-size: 12px;
+      }
+
+      /* Countdown overlay text scale */
+      #countdown-overlay {
+        font-size: clamp(80px, 24vw, 150px);
+      }
+    }
+
+    /* Small Mobile Phones (<= 480px) */
+    @media (max-width: 480px) {
+      #top-bar {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+      }
+      .timer-card {
+        padding: 4px 6px;
+        font-size: 10px;
+        gap: 5px;
+      }
+      .top-actions {
+        gap: 4px;
+      }
+      .btn-icon {
+        width: 34px;
+        height: 34px;
+        padding: 6px;
+      }
+      #hud {
+        width: calc(100% - 16px);
+        padding: 8px 10px;
+        bottom: 10px;
+        gap: 8px 6px;
+      }
+      #btn-play-pause {
+        padding: 8px 10px;
+        font-size: 14px;
+      }
+      #group-speed input[type="range"],
+      #group-size input[type="range"] {
+        width: 56px;
+      }
+    }
+
+    /* Landscape Mode on Mobile */
+    @media (max-height: 520px) and (orientation: landscape) {
+      #top-bar {
+        top: 6px;
+      }
+      #hud {
+        bottom: 6px;
+        padding: 6px 12px;
+      }
+      #prompter-content {
+        padding: 22vh 20px 45vh 20px;
+      }
+      .modal-box {
+        max-height: 96vh;
+        padding: 14px;
+      }
+      #script-textarea {
+        height: 140px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Reading Guide Line Overlay (Signature Blue) -->
+  <div id="guide-overlay">
+    <div class="guide-arrow"></div>
+    <div class="guide-line"></div>
+    <div class="guide-arrow-right"></div>
+  </div>
+
+  <!-- Countdown Overlay (Signature Blue) -->
+  <div id="countdown-overlay" title="Tap or press Space to skip">3</div>
+
+  <!-- Top Floating Status Bar -->
+  <div id="top-bar">
+    <div class="timer-card">
+      <div><span class="lbl-full">Time: </span><span class="lbl-short">⏱ </span><strong id="elapsed-time">00:00</strong></div>
+      <div><span class="lbl-full">Est. Left: </span><span class="lbl-short">⏳ </span><strong id="remaining-time">--:--</strong></div>
+      <div><span class="lbl-full">Words: </span><span class="lbl-short">📝 </span><strong id="word-count">0</strong></div>
+    </div>
+    <div class="top-actions">
+      <!-- Dark / Light Mode Toggle Button -->
+      <button class="btn btn-icon" id="btn-theme-toggle" title="Toggle Light / Dark Mode (T)">
+        <svg id="theme-sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg id="theme-moon-icon" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+
+      <!-- Edit Script Button (Icon-only on mobile, full text on PC) -->
+      <button class="btn" id="btn-edit" title="Edit Script (Esc)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        <span class="btn-label">Edit Script</span>
+      </button>
+
+      <button class="btn btn-icon" id="btn-settings" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+      <button class="btn btn-icon" id="btn-fullscreen" title="Fullscreen (F)">
+        <svg id="fs-enter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Teleprompter Scrolling Viewport -->
+  <div id="viewport">
+    <div id="prompter-content">Welcome to your teleprompter.
+
+Press SPACE or tap screen to play/pause.
+Press UP or DOWN arrows to adjust speed.
+Press R to rewind to the beginning.
+Press F to toggle fullscreen mode.
+Press M to toggle horizontal mirror mode for glass rigs.
+Press H to hide or show controls.
+Press T to toggle Dark or Light mode.
+
+Paste your script using the "Edit Script" button at the top right, or press Esc to begin. Your script and settings are automatically saved.
+
+Good luck with your presentation!</div>
+  </div>
+
+  <!-- HUD Control Bar (Bottom Middle - Disappears without lowering) -->
+  <div id="hud">
+    <button class="btn btn-primary" id="btn-play-pause" title="Play/Pause (Space)">
+      <svg id="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      <svg id="pause-icon" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+      <span id="play-text">Play</span>
+    </button>
+
+    <button class="btn btn-icon" id="btn-rewind" title="Rewind to Top (R / Home)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+    </button>
+
+    <div class="control-group" id="group-speed" title="Scroll Speed (Up / Down arrows)">
+      <span>Speed:</span>
+      <input type="range" id="speed-slider" min="1" max="20" step="0.5" value="5">
+      <span id="speed-val">5x</span>
+    </div>
+
+    <div class="control-group" id="group-size" title="Font Size">
+      <span>Size:</span>
+      <input type="range" id="fontsize-slider" min="24" max="96" step="2" value="52">
+      <span id="fontsize-val">52px</span>
+    </div>
+
+    <button class="btn btn-icon" id="btn-mirror" title="Mirror Horizontally (M)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+    </button>
+  </div>
+
+  <div id="hud-hint">Press <strong>H</strong> to toggle controls</div>
+
+  <!-- Script Editor Modal -->
+  <div id="editor-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Edit Script</h2>
+        <button class="close-btn" id="btn-close-editor">&times;</button>
+      </div>
+      <textarea id="script-textarea" placeholder="Paste or type your script here..."></textarea>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+        <span style="font-size: 13px; color: var(--hud-subtext);" id="modal-word-count">0 words</span>
+        <div style="display:flex; gap:10px;">
+          <button class="btn" id="btn-load-sample">Load Sample</button>
+          <button class="btn btn-primary" id="btn-save-script">Save &amp; Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button class="close-btn" id="btn-close-settings">&times;</button>
+      </div>
+
+      <!-- Theme Setting -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Theme Mode</div>
+          <div class="setting-subtext">Toggle between Dark and Light appearance</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" id="btn-theme-dark">Dark</button>
+          <button class="btn" id="btn-theme-light">Light</button>
+        </div>
+      </div>
+
+      <!-- Text Color Setting -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Text Color</div>
+          <div class="setting-subtext">High contrast colors for clarity</div>
+        </div>
+        <div class="color-picker-group">
+          <div class="color-swatch active" data-color="#ffffff" style="background:#ffffff;" title="White"></div>
+          <div class="color-swatch" data-color="#0f172a" style="background:#0f172a;" title="Charcoal"></div>
+          <div class="color-swatch" data-color="#38bdf8" style="background:#38bdf8;" title="Sky Blue"></div>
+          <div class="color-swatch" data-color="#facc15" style="background:#facc15;" title="Warm Yellow"></div>
+          <div class="color-swatch" data-color="#4ade80" style="background:#4ade80;" title="Soft Green"></div>
+        </div>
+      </div>
+
+      <!-- Reading Guide Setting -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Reading Guide Line</div>
+          <div class="setting-subtext">Blue horizontal line keeping eyes on track</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-guide" checked>
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+
+      <!-- Countdown Toggle -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Countdown Timer</div>
+          <div class="setting-subtext">Count down before scrolling starts</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-countdown" checked>
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+
+      <!-- Customizable Countdown Duration Slider -->
+      <div class="setting-row" id="countdown-duration-row">
+        <div>
+          <div class="setting-label">Countdown Duration</div>
+          <div class="setting-subtext">Customize countdown seconds (1s - 10s)</div>
+        </div>
+        <div class="control-group">
+          <input type="range" id="countdown-slider" min="1" max="10" step="1" value="3">
+          <span id="countdown-val">3s</span>
+        </div>
+      </div>
+
+      <!-- Content Width -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Content Width</div>
+          <div class="setting-subtext">Adjust reading column width</div>
+        </div>
+        <div class="control-group">
+          <input type="range" id="width-slider" min="500" max="1400" step="50" value="900">
+          <span id="width-val">900px</span>
+        </div>
+      </div>
+
+      <!-- Line Height -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Line Height</div>
+          <div class="setting-subtext">Spacing between sentences</div>
+        </div>
+        <div class="control-group">
+          <input type="range" id="lineheight-slider" min="1.2" max="2.2" step="0.1" value="1.5">
+          <span id="lineheight-val">1.5</span>
+        </div>
+      </div>
+
+      <!-- Text Alignment -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Text Alignment</div>
+          <div class="setting-subtext">Left or center align script</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" id="btn-align-left">Left</button>
+          <button class="btn" id="btn-align-center">Center</button>
+        </div>
+      </div>
+
+      <!-- Vertical Flip -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Vertical Flip</div>
+          <div class="setting-subtext">Invert vertically for upside-down monitors</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-flip-v">
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+
+      <div style="margin-top: 20px; text-align: right;">
+        <button class="btn btn-primary" id="btn-done-settings">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    const state = {
+      theme: 'dark', // 'dark' | 'light'
+      isPlaying: false,
+      speed: 5,
+      fontSize: 52,
+      contentWidth: 900,
+      lineHeight: 1.5,
+      textColor: '#ffffff',
+      textAlign: 'left',
+      mirrorH: false,
+      mirrorV: false,
+      showGuide: true,
+      countdownEnabled: true,
+      countdownDuration: 3,
+      hudVisible: true,
+      scrollPos: 0,
+      lastTimestamp: null,
+      elapsedSeconds: 0,
+      timerInterval: null,
+      isCountingDown: false,
+      countdownTimerId: null
+    };
+
+    // DOM Elements
+    const viewport = document.getElementById('viewport');
+    const prompterContent = document.getElementById('prompter-content');
+    const hud = document.getElementById('hud');
+    const hudHint = document.getElementById('hud-hint');
+    const topBar = document.getElementById('top-bar');
+    const guideOverlay = document.getElementById('guide-overlay');
+    const countdownOverlay = document.getElementById('countdown-overlay');
+
+    const btnPlayPause = document.getElementById('btn-play-pause');
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+    const playText = document.getElementById('play-text');
+    const btnRewind = document.getElementById('btn-rewind');
+    const btnMirror = document.getElementById('btn-mirror');
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    const btnEdit = document.getElementById('btn-edit');
+    const btnSettings = document.getElementById('btn-settings');
+    const btnThemeToggle = document.getElementById('btn-theme-toggle');
+    const themeSunIcon = document.getElementById('theme-sun-icon');
+    const themeMoonIcon = document.getElementById('theme-moon-icon');
+
+    const speedSlider = document.getElementById('speed-slider');
+    const speedVal = document.getElementById('speed-val');
+    const fontsizeSlider = document.getElementById('fontsize-slider');
+    const fontsizeVal = document.getElementById('fontsize-val');
+
+    // Modals
+    const editorModal = document.getElementById('editor-modal');
+    const scriptTextarea = document.getElementById('script-textarea');
+    const btnCloseEditor = document.getElementById('btn-close-editor');
+    const btnSaveScript = document.getElementById('btn-save-script');
+    const btnLoadSample = document.getElementById('btn-load-sample');
+    const modalWordCount = document.getElementById('modal-word-count');
+
+    const settingsModal = document.getElementById('settings-modal');
+    const btnCloseSettings = document.getElementById('btn-close-settings');
+    const btnDoneSettings = document.getElementById('btn-done-settings');
+    const btnThemeDark = document.getElementById('btn-theme-dark');
+    const btnThemeLight = document.getElementById('btn-theme-light');
+    const toggleGuide = document.getElementById('toggle-guide');
+    const toggleCountdown = document.getElementById('toggle-countdown');
+    const countdownSlider = document.getElementById('countdown-slider');
+    const countdownVal = document.getElementById('countdown-val');
+    const countdownDurationRow = document.getElementById('countdown-duration-row');
+    const toggleFlipV = document.getElementById('toggle-flip-v');
+    const widthSlider = document.getElementById('width-slider');
+    const widthVal = document.getElementById('width-val');
+    const lineheightSlider = document.getElementById('lineheight-slider');
+    const lineheightVal = document.getElementById('lineheight-val');
+    const btnAlignLeft = document.getElementById('btn-align-left');
+    const btnAlignCenter = document.getElementById('btn-align-center');
+    const colorSwatches = document.querySelectorAll('.color-swatch');
+
+    // Counters
+    const elapsedTimeEl = document.getElementById('elapsed-time');
+    const remainingTimeEl = document.getElementById('remaining-time');
+    const wordCountEl = document.getElementById('word-count');
+
+    // Load saved settings & script
+    function loadSavedState() {
+      try {
+        const savedScript = localStorage.getItem('tp_script');
+        if (savedScript) {
+          prompterContent.textContent = savedScript;
+          scriptTextarea.value = savedScript;
+        } else {
+          scriptTextarea.value = prompterContent.textContent;
+        }
+
+        const savedSettings = JSON.parse(localStorage.getItem('tp_settings') || '{}');
+        if (savedSettings.theme) state.theme = savedSettings.theme;
+        if (savedSettings.speed !== undefined) state.speed = savedSettings.speed;
+        if (savedSettings.fontSize !== undefined) state.fontSize = savedSettings.fontSize;
+        if (savedSettings.contentWidth !== undefined) state.contentWidth = savedSettings.contentWidth;
+        if (savedSettings.lineHeight !== undefined) state.lineHeight = savedSettings.lineHeight;
+        if (savedSettings.textColor) state.textColor = savedSettings.textColor;
+        if (savedSettings.textAlign) state.textAlign = savedSettings.textAlign;
+        if (savedSettings.mirrorH !== undefined) state.mirrorH = savedSettings.mirrorH;
+        if (savedSettings.mirrorV !== undefined) state.mirrorV = savedSettings.mirrorV;
+        if (savedSettings.showGuide !== undefined) state.showGuide = savedSettings.showGuide;
+        if (savedSettings.countdownEnabled !== undefined) state.countdownEnabled = savedSettings.countdownEnabled;
+        if (savedSettings.countdownDuration !== undefined) state.countdownDuration = savedSettings.countdownDuration;
+      } catch (e) {
+        console.error('Failed to load settings:', e);
+      }
+
+      applyTheme(state.theme, false);
+      applyStateToUI();
+      updateStats();
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('tp_script', prompterContent.textContent);
+        localStorage.setItem('tp_settings', JSON.stringify({
+          theme: state.theme,
+          speed: state.speed,
+          fontSize: state.fontSize,
+          contentWidth: state.contentWidth,
+          lineHeight: state.lineHeight,
+          textColor: state.textColor,
+          textAlign: state.textAlign,
+          mirrorH: state.mirrorH,
+          mirrorV: state.mirrorV,
+          showGuide: state.showGuide,
+          countdownEnabled: state.countdownEnabled,
+          countdownDuration: state.countdownDuration
+        }));
+      } catch (e) {
+        console.error('Failed to save settings:', e);
+      }
+    }
+
+    function applyTheme(theme, autoAdjustTextColor = true) {
+      state.theme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+
+      if (theme === 'light') {
+        themeSunIcon.style.display = 'none';
+        themeMoonIcon.style.display = 'inline';
+        btnThemeDark.classList.remove('btn-primary');
+        btnThemeLight.classList.add('btn-primary');
+        if (autoAdjustTextColor && state.textColor === '#ffffff') {
+          state.textColor = '#0f172a';
+        }
+      } else {
+        themeSunIcon.style.display = 'inline';
+        themeMoonIcon.style.display = 'none';
+        btnThemeLight.classList.remove('btn-primary');
+        btnThemeDark.classList.add('btn-primary');
+        if (autoAdjustTextColor && state.textColor === '#0f172a') {
+          state.textColor = '#ffffff';
+        }
+      }
+
+      document.documentElement.style.setProperty('--text-color', state.textColor);
+      updateColorSwatches();
+      saveState();
+    }
+
+    function toggleTheme() {
+      applyTheme(state.theme === 'dark' ? 'light' : 'dark', true);
+    }
+
+    function updateColorSwatches() {
+      colorSwatches.forEach(swatch => {
+        swatch.classList.toggle('active', swatch.getAttribute('data-color') === state.textColor);
+      });
+    }
+
+    function applyStateToUI() {
+      // Speed
+      speedSlider.value = state.speed;
+      speedVal.textContent = state.speed + 'x';
+
+      // Font size
+      fontsizeSlider.value = state.fontSize;
+      fontsizeVal.textContent = state.fontSize + 'px';
+      document.documentElement.style.setProperty('--font-size', state.fontSize + 'px');
+
+      // Content width
+      widthSlider.value = state.contentWidth;
+      widthVal.textContent = state.contentWidth + 'px';
+      document.documentElement.style.setProperty('--content-width', state.contentWidth + 'px');
+
+      // Line height
+      lineheightSlider.value = state.lineHeight;
+      lineheightVal.textContent = state.lineHeight;
+      document.documentElement.style.setProperty('--line-height', state.lineHeight);
+
+      // Color
+      document.documentElement.style.setProperty('--text-color', state.textColor);
+      updateColorSwatches();
+
+      // Align
+      prompterContent.style.textAlign = state.textAlign;
+
+      // Guides
+      guideOverlay.classList.toggle('hidden', !state.showGuide);
+      toggleGuide.checked = state.showGuide;
+
+      // Countdown
+      toggleCountdown.checked = state.countdownEnabled;
+      countdownSlider.value = state.countdownDuration;
+      countdownVal.textContent = state.countdownDuration + 's';
+      countdownDurationRow.style.opacity = state.countdownEnabled ? '1' : '0.4';
+      countdownSlider.disabled = !state.countdownEnabled;
+
+      // Flip
+      toggleFlipV.checked = state.mirrorV;
+
+      // Transforms
+      applyTransforms();
+    }
+
+    function applyTransforms() {
+      prompterContent.classList.remove('mirror-h', 'mirror-v', 'mirror-both');
+      if (state.mirrorH && state.mirrorV) {
+        prompterContent.classList.add('mirror-both');
+      } else if (state.mirrorH) {
+        prompterContent.classList.add('mirror-h');
+      } else if (state.mirrorV) {
+        prompterContent.classList.add('mirror-v');
+      }
+      btnMirror.style.borderColor = state.mirrorH ? 'var(--accent)' : 'var(--btn-border)';
+      btnMirror.style.background = state.mirrorH ? 'rgba(37, 99, 235, 0.25)' : 'var(--btn-bg)';
+    }
+
+    // Scroll Loop
+    function scrollStep(timestamp) {
+      if (!state.isPlaying) {
+        state.lastTimestamp = null;
+        return;
+      }
+
+      if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+      const delta = (timestamp - state.lastTimestamp) / 1000;
+      state.lastTimestamp = timestamp;
+
+      // Base speed multiplier: ~42px per second per 1x speed
+      const pxPerSec = state.speed * 42;
+      state.scrollPos += pxPerSec * delta;
+
+      viewport.scrollTop = state.scrollPos;
+
+      // Check if reached bottom
+      const maxScroll = viewport.scrollHeight - viewport.clientHeight;
+      if (viewport.scrollTop >= maxScroll && maxScroll > 0) {
+        pause();
+        return;
+      }
+
+      requestAnimationFrame(scrollStep);
+    }
+
+    // User manual scroll sync
+    viewport.addEventListener('scroll', () => {
+      if (Math.abs(viewport.scrollTop - state.scrollPos) > 4) {
+        state.scrollPos = viewport.scrollTop;
+      }
+    });
+
+    // Playback controls
+    function play() {
+      if (state.isPlaying || state.isCountingDown) return;
+
+      if (state.countdownEnabled && viewport.scrollTop <= 20) {
+        runCountdown(() => {
+          startPlayback();
+        });
+      } else {
+        startPlayback();
+      }
+    }
+
+    function startPlayback() {
+      state.isPlaying = true;
+      state.scrollPos = viewport.scrollTop;
+      state.lastTimestamp = null;
+
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'inline';
+      playText.textContent = 'Pause';
+      btnPlayPause.classList.add('btn-primary');
+
+      // Start elapsed timer
+      if (!state.timerInterval) {
+        state.timerInterval = setInterval(() => {
+          state.elapsedSeconds++;
+          elapsedTimeEl.textContent = formatTime(state.elapsedSeconds);
+          updateRemainingTime();
+        }, 1000);
+      }
+
+      requestAnimationFrame(scrollStep);
+    }
+
+    function pause() {
+      state.isPlaying = false;
+      playIcon.style.display = 'inline';
+      pauseIcon.style.display = 'none';
+      playText.textContent = 'Play';
+
+      if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+      }
+
+      cancelCountdown();
+    }
+
+    function togglePlay() {
+      if (state.isCountingDown) {
+        cancelCountdown();
+        return;
+      }
+      if (state.isPlaying) {
+        pause();
+      } else {
+        play();
+      }
+    }
+
+    function rewind() {
+      pause();
+      cancelCountdown();
+      state.scrollPos = 0;
+      viewport.scrollTop = 0;
+      state.elapsedSeconds = 0;
+      elapsedTimeEl.textContent = '00:00';
+      updateRemainingTime();
+    }
+
+    function cancelCountdown() {
+      if (state.countdownTimerId) {
+        clearInterval(state.countdownTimerId);
+        state.countdownTimerId = null;
+      }
+      countdownOverlay.classList.remove('active');
+      state.isCountingDown = false;
+    }
+
+    function runCountdown(callback) {
+      cancelCountdown();
+      state.isCountingDown = true;
+      let count = state.countdownDuration || 3;
+      countdownOverlay.textContent = count;
+      countdownOverlay.classList.add('active');
+
+      state.countdownTimerId = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownOverlay.textContent = count;
+        } else {
+          clearInterval(state.countdownTimerId);
+          state.countdownTimerId = null;
+          countdownOverlay.classList.remove('active');
+          state.isCountingDown = false;
+          callback();
+        }
+      }, 950);
+    }
+
+    // Clicking/Tapping countdown skips countdown and immediately starts
+    countdownOverlay.addEventListener('click', () => {
+      if (state.isCountingDown) {
+        cancelCountdown();
+        startPlayback();
+      }
+    });
+
+    // Time & Word Stats
+    function updateStats() {
+      const text = prompterContent.textContent.trim();
+      const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+      wordCountEl.textContent = words.toLocaleString();
+      modalWordCount.textContent = words.toLocaleString() + ' words';
+      updateRemainingTime();
+    }
+
+    function updateRemainingTime() {
+      const maxScroll = viewport.scrollHeight - viewport.clientHeight;
+      if (maxScroll <= 0) {
+        remainingTimeEl.textContent = '--:--';
+        return;
+      }
+      const remainingPx = Math.max(0, maxScroll - viewport.scrollTop);
+      const pxPerSec = state.speed * 42;
+      const secondsLeft = Math.round(remainingPx / pxPerSec);
+      remainingTimeEl.textContent = formatTime(secondsLeft);
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    // HUD / Fullscreen controls (Disappears in place without lowering)
+    function toggleHud() {
+      state.hudVisible = !state.hudVisible;
+      hud.classList.toggle('hidden', !state.hudVisible);
+      topBar.classList.toggle('hidden', !state.hudVisible);
+      hudHint.classList.toggle('hidden', !state.hudVisible);
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // Speed Slider
+    speedSlider.addEventListener('input', (e) => {
+      state.speed = parseFloat(e.target.value);
+      speedVal.textContent = state.speed + 'x';
+      saveState();
+      updateRemainingTime();
+    });
+
+    // Font Size Slider
+    fontsizeSlider.addEventListener('input', (e) => {
+      state.fontSize = parseInt(e.target.value);
+      fontsizeVal.textContent = state.fontSize + 'px';
+      document.documentElement.style.setProperty('--font-size', state.fontSize + 'px');
+      saveState();
+    });
+
+    // Width Slider
+    widthSlider.addEventListener('input', (e) => {
+      state.contentWidth = parseInt(e.target.value);
+      widthVal.textContent = state.contentWidth + 'px';
+      document.documentElement.style.setProperty('--content-width', state.contentWidth + 'px');
+      saveState();
+    });
+
+    // Line Height Slider
+    lineheightSlider.addEventListener('input', (e) => {
+      state.lineHeight = parseFloat(e.target.value);
+      lineheightVal.textContent = state.lineHeight;
+      document.documentElement.style.setProperty('--line-height', state.lineHeight);
+      saveState();
+    });
+
+    // Countdown Duration Slider
+    countdownSlider.addEventListener('input', (e) => {
+      state.countdownDuration = parseInt(e.target.value, 10);
+      countdownVal.textContent = state.countdownDuration + 's';
+      saveState();
+    });
+
+    // Button Listeners
+    btnPlayPause.addEventListener('click', togglePlay);
+    btnRewind.addEventListener('click', rewind);
+    btnMirror.addEventListener('click', () => {
+      state.mirrorH = !state.mirrorH;
+      applyTransforms();
+      saveState();
+    });
+    btnFullscreen.addEventListener('click', toggleFullscreen);
+    btnThemeToggle.addEventListener('click', toggleTheme);
+    btnThemeDark.addEventListener('click', () => applyTheme('dark', true));
+    btnThemeLight.addEventListener('click', () => applyTheme('light', true));
+
+    // Guide Toggle
+    toggleGuide.addEventListener('change', (e) => {
+      state.showGuide = e.target.checked;
+      guideOverlay.classList.toggle('hidden', !state.showGuide);
+      saveState();
+    });
+
+    // Countdown Toggle
+    toggleCountdown.addEventListener('change', (e) => {
+      state.countdownEnabled = e.target.checked;
+      countdownSlider.disabled = !state.countdownEnabled;
+      countdownDurationRow.style.opacity = state.countdownEnabled ? '1' : '0.4';
+      saveState();
+    });
+
+    // Flip V Toggle
+    toggleFlipV.addEventListener('change', (e) => {
+      state.mirrorV = e.target.checked;
+      applyTransforms();
+      saveState();
+    });
+
+    // Alignment
+    btnAlignLeft.addEventListener('click', () => {
+      state.textAlign = 'left';
+      prompterContent.style.textAlign = 'left';
+      saveState();
+    });
+    btnAlignCenter.addEventListener('click', () => {
+      state.textAlign = 'center';
+      prompterContent.style.textAlign = 'center';
+      saveState();
+    });
+
+    // Color Swatches
+    colorSwatches.forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        state.textColor = swatch.getAttribute('data-color');
+        document.documentElement.style.setProperty('--text-color', state.textColor);
+        updateColorSwatches();
+        saveState();
+      });
+    });
+
+    // Modals
+    btnEdit.addEventListener('click', () => {
+      pause();
+      scriptTextarea.value = prompterContent.textContent;
+      const words = scriptTextarea.value.trim().split(/\s+/).filter(Boolean).length;
+      modalWordCount.textContent = words.toLocaleString() + ' words';
+      editorModal.classList.add('active');
+      scriptTextarea.focus();
+    });
+
+    btnCloseEditor.addEventListener('click', () => {
+      editorModal.classList.remove('active');
+    });
+
+    btnSaveScript.addEventListener('click', () => {
+      const text = scriptTextarea.value.trim();
+      prompterContent.textContent = text || 'Please enter script in editor.';
+      editorModal.classList.remove('active');
+      rewind();
+      updateStats();
+      saveState();
+    });
+
+    btnLoadSample.addEventListener('click', () => {
+      scriptTextarea.value = `Good morning and welcome to today's keynote presentation.
+
+Today, we are thrilled to unveil our latest breakthroughs in creative technology. Over the past year, our team has worked tirelessly to build tools that empower communicators, creators, and leaders worldwide.
+
+As we look at the changing landscape of modern broadcasting, three fundamental themes stand out:
+
+First, clarity of delivery. When you speak directly to your audience, every pause and every expression matters.
+
+Second, seamless tools that stay completely out of your way, giving you full control over your pacing.
+
+And third, accessibility. High quality teleprompting should be available directly in your browser on any device, with no expensive hardware required.
+
+Thank you so much for joining us today, and let us begin our journey into what comes next!`;
+      const words = scriptTextarea.value.trim().split(/\s+/).filter(Boolean).length;
+      modalWordCount.textContent = words.toLocaleString() + ' words';
+    });
+
+    scriptTextarea.addEventListener('input', () => {
+      const words = scriptTextarea.value.trim().split(/\s+/).filter(Boolean).length;
+      modalWordCount.textContent = words.toLocaleString() + ' words';
+    });
+
+    btnSettings.addEventListener('click', () => {
+      pause();
+      settingsModal.classList.add('active');
+    });
+
+    btnCloseSettings.addEventListener('click', () => {
+      settingsModal.classList.remove('active');
+    });
+
+    btnDoneSettings.addEventListener('click', () => {
+      settingsModal.classList.remove('active');
+    });
+
+    // Close modals on outside click
+    window.addEventListener('click', (e) => {
+      if (e.target === editorModal) editorModal.classList.remove('active');
+      if (e.target === settingsModal) settingsModal.classList.remove('active');
+    });
+
+    // Keyboard Shortcuts (PC)
+    window.addEventListener('keydown', (e) => {
+      if (document.activeElement === scriptTextarea) {
+        if (e.key === 'Escape') {
+          editorModal.classList.remove('active');
+        }
+        return;
+      }
+
+      switch (e.key) {
+        case ' ':
+          e.preventDefault();
+          togglePlay();
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          state.speed = Math.min(20, +(state.speed + 0.5).toFixed(1));
+          speedSlider.value = state.speed;
+          speedVal.textContent = state.speed + 'x';
+          saveState();
+          updateRemainingTime();
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          state.speed = Math.max(1, +(state.speed - 0.5).toFixed(1));
+          speedSlider.value = state.speed;
+          speedVal.textContent = state.speed + 'x';
+          saveState();
+          updateRemainingTime();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          state.scrollPos = Math.max(0, state.scrollPos - 150);
+          viewport.scrollTop = state.scrollPos;
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          state.scrollPos = state.scrollPos + 150;
+          viewport.scrollTop = state.scrollPos;
+          break;
+        case 'r':
+        case 'R':
+        case 'Home':
+          e.preventDefault();
+          rewind();
+          break;
+        case 'm':
+        case 'M':
+          state.mirrorH = !state.mirrorH;
+          applyTransforms();
+          saveState();
+          break;
+        case 'h':
+        case 'H':
+          toggleHud();
+          break;
+        case 'f':
+        case 'F':
+          toggleFullscreen();
+          break;
+        case 't':
+        case 'T':
+          toggleTheme();
+          break;
+        case 'Escape':
+          if (editorModal.classList.contains('active')) {
+            editorModal.classList.remove('active');
+          } else if (settingsModal.classList.contains('active')) {
+            settingsModal.classList.remove('active');
+          } else {
+            btnEdit.click();
+          }
+          break;
+      }
+    });
+
+    // Touch Support for Mobile: Tap on viewport to play/pause or show controls
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', (e) => {
+      if (e.changedTouches.length === 1) {
+        const deltaX = Math.abs(e.changedTouches[0].clientX - touchStartX);
+        const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartY);
+        const elapsed = Date.now() - touchStartTime;
+
+        // Clean tap detection: little movement (< 12px) and quick duration (< 300ms)
+        if (deltaX < 12 && deltaY < 12 && elapsed < 300) {
+          if (editorModal.classList.contains('active') || settingsModal.classList.contains('active')) {
+            return;
+          }
+
+          // If HUD was hidden via H, unhide it on tap
+          if (!state.hudVisible) {
+            toggleHud();
+            return;
+          }
+
+          // If HUD was faded out due to mouse/touch idle, bring it back
+          if (hud.style.opacity === '0') {
+            hud.style.opacity = '1';
+            topBar.style.opacity = '1';
+            return;
+          }
+
+          // Otherwise toggle playback
+          togglePlay();
+        }
+      }
+    }, { passive: true });
+
+    // Mouse idle auto-fade HUD during playback
+    let idleTimer = null;
+    window.addEventListener('mousemove', () => {
+      if (!state.hudVisible) return;
+      hud.style.opacity = '1';
+      topBar.style.opacity = '1';
+      hudHint.style.opacity = '1';
+      clearTimeout(idleTimer);
+      if (state.isPlaying) {
+        idleTimer = setTimeout(() => {
+          hud.style.opacity = '0';
+          topBar.style.opacity = '0';
+          hudHint.style.opacity = '0';
+        }, 2500);
+      }
+    });
+
+    // Initialize
+    loadSavedState();
+  </script>
+</body>
+</html>

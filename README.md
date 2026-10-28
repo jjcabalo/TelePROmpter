@@ -70,3 +70,49 @@ You can use your phone or tablet as a portable teleprompter screen mounted on yo
 | **Mirror Text (Glass Rig)** | `M` | Mirror icon button |
 | **Fullscreen** | `F` | Fullscreen icon button |
 | **Edit Script** | `Esc` | "Edit Script" button |
+
+---
+
+## Deploy to Vercel
+
+You can deploy TelePROmpter to Vercel with zero configuration:
+
+### Method 1: Deploy with Vercel CLI
+```bash
+# Install Vercel CLI globally (if not already installed)
+npm i -g vercel
+
+# Deploy directly from this directory
+vercel
+```
+
+### Method 2: Deploy with Git & Vercel Dashboard
+1. Push this repository to GitHub, GitLab, or Bitbucket.
+2. Go to [vercel.com/new](https://vercel.com/new) and import the repository.
+3. Leave all default settings as **Other / Static** and click **Deploy**.
+4. Your teleprompter will be live on your custom `https://<your-project>.vercel.app` URL immediately!
+
+---
+
+## Local Development
+
+### Option 1: Just Double-Click (Zero Setup)
+Simply double-click `index.html` or `TelePROmpter.html` in your file explorer. It will open directly in your web browser with all features working completely offline!
+
+### Option 2: Run Local Server (localhost:3000)
+Run the following in your terminal:
+
+```bash
+npm start
+# or: npm run dev
+```
+
+This starts the built-in local server at:
+👉 **`http://localhost:3000`**
+
+It will also automatically open your default web browser to the page!
+
+To rebuild Tailwind CSS after editing `src/input.css`:
+```bash
+npm run build
+```

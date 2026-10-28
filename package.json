@@ -1,0 +1,27 @@
+{
+  "name": "teleprompter",
+  "version": "1.0.0",
+  "description": "A modern, minimalist, distraction-free teleprompter for web and mobile.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "serve": "node server.js",
+    "build": "tailwindcss -i src/input.css -o css/style.css --minify",
+    "watch": "tailwindcss -i src/input.css -o css/style.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  },
+  "keywords": [
+    "teleprompter",
+    "autoscroll",
+    "presentation",
+    "speech",
+    "video-production",
+    "tailwind",
+    "vercel"
+  ],
+  "author": "",
+  "license": "MIT"
+}

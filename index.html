@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TelePROmpter</title>
+  <meta name="description" content="A modern, minimalist, distraction-free teleprompter that runs directly in your web browser.">
+  <meta name="theme-color" content="#000000">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TelePROmpter">
+  <meta property="og:description" content="A modern, minimalist, distraction-free teleprompter for creators, presenters, and broadcasters.">
+  <meta property="og:image" content="./assets/icon-512.svg">
+
+  <!-- iOS / PWA Meta -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TelePROmpter">
+  <link rel="apple-touch-icon" href="./assets/icon-192.svg">
+  <link rel="manifest" href="./manifest.webmanifest">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2716%27%20fill%3D%27%23000000%27%2F%3E%3Cpolygon%20points%3D%2712%2C32%2022%2C24%2022%2C40%27%20fill%3D%27%23ffffff%27%2F%3E%3Cline%20x1%3D%2726%27%20y1%3D%2732%27%20x2%3D%2752%27%20y2%3D%2732%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%274.5%27%20stroke-linecap%3D%27round%27%2F%3E%3Cline%20x1%3D%2716%27%20y1%3D%2719%27%20x2%3D%2748%27%20y2%3D%2719%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%273.5%27%20stroke-linecap%3D%27round%27%20opacity%3D%270.7%27%2F%3E%3Cline%20x1%3D%2716%27%20y1%3D%2745%27%20x2%3D%2748%27%20y2%3D%2745%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%273.5%27%20stroke-linecap%3D%27round%27%20opacity%3D%270.7%27%2F%3E%3C%2Fsvg%3E">
+  <link rel="alternate icon" type="image/svg+xml" href="./favicon.svg">
+
+  <!-- Tailwind CSS & Custom Design System -->
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+  <!-- Reading Guide Line Overlay (Signature Blue) -->
+  <div id="guide-overlay">
+    <div class="guide-arrow"></div>
+    <div class="guide-line"></div>
+    <div class="guide-arrow-right"></div>
+  </div>
+
+  <!-- Countdown Overlay (Signature Blue) -->
+  <div id="countdown-overlay" title="Tap or press Space to skip">3</div>
+
+  <!-- Top Floating Status Bar -->
+  <div id="top-bar">
+    <div class="timer-card">
+      <div><span class="lbl-full">Time: </span><span class="lbl-short">⏱ </span><strong id="elapsed-time">00:00</strong></div>
+      <div><span class="lbl-full">Est. Left: </span><span class="lbl-short">⏳ </span><strong id="remaining-time">--:--</strong></div>
+      <div><span class="lbl-full">Words: </span><span class="lbl-short">📝 </span><strong id="word-count">0</strong></div>
+    </div>
+    <div class="top-actions">
+      <!-- Dark / Light Mode Toggle Button -->
+      <button class="btn btn-icon" id="btn-theme-toggle" title="Toggle Light / Dark Mode (T)">
+        <svg id="theme-sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg id="theme-moon-icon" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+
+      <!-- Edit Script Button (Icon-only on mobile, full text on PC) -->
+      <button class="btn" id="btn-edit" title="Edit Script (Esc)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        <span class="btn-label">Edit Script</span>
+      </button>
+
+      <button class="btn btn-icon" id="btn-settings" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+      <button class="btn btn-icon" id="btn-fullscreen" title="Fullscreen (F)">
+        <svg id="fs-enter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Teleprompter Scrolling Viewport -->
+  <div id="viewport">
+    <div id="prompter-content">Welcome to your teleprompter.
+
+Press SPACE or tap screen to play/pause.
+Press UP or DOWN arrows to adjust speed.
+Press R to rewind to the beginning.
+Press F to toggle fullscreen mode.
+Press M to toggle horizontal mirror mode for glass rigs.
+Press H to hide or show controls.
+Press T to toggle Dark or Light mode.
+
+Paste your script using the "Edit Script" button at the top right, or press Esc to begin. Your script and settings are automatically saved.
+
+Good luck with your presentation!</div>
+  </div>
+
+  <!-- HUD Control Bar (Bottom Middle - Disappears without lowering) -->
+  <div id="hud">
+    <button class="btn btn-primary" id="btn-play-pause" title="Play/Pause (Space)">
+      <svg id="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      <svg id="pause-icon" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+      <span id="play-text">Play</span>
+    </button>
+
+    <button class="btn btn-icon" id="btn-rewind" title="Rewind to Top (R / Home)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+    </button>
+
+    <div class="control-group" id="group-speed" title="Scroll Speed (Up / Down arrows)">
+      <span>Speed:</span>
+      <input type="range" id="speed-slider" min="1" max="20" step="0.5" value="5">
+      <span id="speed-val">5x</span>
+    </div>
+
+    <div class="control-group" id="group-size" title="Font Size">
+      <span>Size:</span>
+      <input type="range" id="fontsize-slider" min="24" max="96" step="2" value="52">
+      <span id="fontsize-val">52px</span>
+    </div>
+
+    <button class="btn btn-icon" id="btn-mirror" title="Mirror Horizontally (M)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+    </button>
+  </div>
+
+  <div id="hud-hint">Press <strong>H</strong> to toggle controls</div>
+
+  <!-- Script Editor Modal -->
+  <div id="editor-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Edit Script</h2>
+        <button class="close-btn" id="btn-close-editor">&times;</button>
+      </div>
+      <textarea id="script-textarea" placeholder="Paste or type your script here..."></textarea>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+        <span style="font-size: 13px; color: var(--hud-subtext);" id="modal-word-count">0 words</span>
+        <div style="display:flex; gap:10px;">
+          <button class="btn" id="btn-load-sample">Load Sample</button>
+          <button class="btn btn-primary" id="btn-save-script">Save &amp; Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button class="close-btn" id="btn-close-settings">&times;</button>
+      </div>
+
+      <!-- Theme Setting -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Theme Mode</div>
+          <div class="setting-subtext">Toggle between Dark and Light appearance</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" id="btn-theme-dark">Dark</button>
+          <button class="btn" id="btn-theme-light">Light</button>
+        </div>
+      </div>
+
+      <!-- Text Color Setting -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Text Color</div>
+          <div class="setting-subtext">High contrast colors for clarity</div>
+        </div>
+        <div class="color-picker-group">
+          <div class="color-swatch active" data-color="#ffffff" style="background:#ffffff;" title="White"></div>
+          <div class="color-swatch" data-color="#0f172a" style="background:#0f172a;" title="Charcoal"></div>
+          <div class="color-swatch" data-color="#38bdf8" style="background:#38bdf8;" title="Sky Blue"></div>
+          <div class="color-swatch" data-color="#facc15" style="background:#facc15;" title="Warm Yellow"></div>
+          <div class="color-swatch" data-color="#4ade80" style="background:#4ade80;" title="Soft Green"></div>
+        </div>
+      </div>
+
+      <!-- Reading Guide Setting -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Reading Guide Line</div>
+          <div class="setting-subtext">Blue horizontal line keeping eyes on track</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-guide" checked>
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+
+      <!-- Countdown Toggle -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Countdown Timer</div>
+          <div class="setting-subtext">Count down before scrolling starts</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-countdown" checked>
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+
+      <!-- Customizable Countdown Duration Slider -->
+      <div class="setting-row" id="countdown-duration-row">
+        <div>
+          <div class="setting-label">Countdown Duration</div>
+          <div class="setting-subtext">Customize countdown seconds (1s - 10s)</div>
+        </div>
+        <div class="control-group">
+          <input type="range" id="countdown-slider" min="1" max="10" step="1" value="3">
+          <span id="countdown-val">3s</span>
+        </div>
+      </div>
+
+      <!-- Content Width -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Content Width</div>
+          <div class="setting-subtext">Adjust reading column width</div>
+        </div>
+        <div class="control-group">
+          <input type="range" id="width-slider" min="500" max="1400" step="50" value="900">
+          <span id="width-val">900px</span>
+        </div>
+      </div>
+
+      <!-- Line Height -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Line Height</div>
+          <div class="setting-subtext">Spacing between sentences</div>
+        </div>
+        <div class="control-group">
+          <input type="range" id="lineheight-slider" min="1.2" max="2.2" step="0.1" value="1.5">
+          <span id="lineheight-val">1.5</span>
+        </div>
+      </div>
+
+      <!-- Text Alignment -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Text Alignment</div>
+          <div class="setting-subtext">Left or center align script</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" id="btn-align-left">Left</button>
+          <button class="btn" id="btn-align-center">Center</button>
+        </div>
+      </div>
+
+      <!-- Vertical Flip -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Vertical Flip</div>
+          <div class="setting-subtext">Invert vertically for upside-down monitors</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-flip-v">
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+
+      <div style="margin-top: 20px; text-align: right;">
+        <button class="btn btn-primary" id="btn-done-settings">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modular Component Scripts -->
+  <script src="./js/components/ReadingGuide.js"></script>
+  <script src="./js/components/CountdownOverlay.js"></script>
+  <script src="./js/components/TopBar.js"></script>
+  <script src="./js/components/HudControls.js"></script>
+  <script src="./js/components/EditorModal.js"></script>
+  <script src="./js/components/SettingsModal.js"></script>
+  <!-- Application Core -->
+  <script src="./js/app.js"></script>
+</body>
+</html>

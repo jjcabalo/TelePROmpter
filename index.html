@@ -24,10 +24,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2716%27%20fill%3D%27%23000000%27%2F%3E%3Cpolygon%20points%3D%2712%2C32%2022%2C24%2022%2C40%27%20fill%3D%27%23ffffff%27%2F%3E%3Cline%20x1%3D%2726%27%20y1%3D%2732%27%20x2%3D%2752%27%20y2%3D%2732%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%274.5%27%20stroke-linecap%3D%27round%27%2F%3E%3Cline%20x1%3D%2716%27%20y1%3D%2719%27%20x2%3D%2748%27%20y2%3D%2719%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%273.5%27%20stroke-linecap%3D%27round%27%20opacity%3D%270.7%27%2F%3E%3Cline%20x1%3D%2716%27%20y1%3D%2745%27%20x2%3D%2748%27%20y2%3D%2745%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%273.5%27%20stroke-linecap%3D%27round%27%20opacity%3D%270.7%27%2F%3E%3C%2Fsvg%3E">
   <link rel="alternate icon" type="image/svg+xml" href="./favicon.svg">
 
-  <!-- External Stylesheet (served by Vercel & local server) -->
-  <link rel="stylesheet" href="./css/style.css">
-
-  <!-- Guaranteed Embedded Stylesheet: Prevents any missing CSS on Vercel/CDN -->
+  <!-- Guaranteed Embedded Tailwind CSS Styling -->
   <style>
     :root {
       --accent: #2563eb;
@@ -109,6 +106,7 @@
       -ms-overflow-style: none;
       position: relative;
       touch-action: pan-y;
+      cursor: default;
     }
     #viewport::-webkit-scrollbar {
       display: none;
@@ -799,7 +797,748 @@ Good luck with your presentation!</div>
     </div>
   </div>
 
-  <!-- Application Core & Components -->
-  <script src="./js/app.js"></script>
+  <!-- Guaranteed Inline Script: 100% Reliable Execution on Vercel, Localhost & Offline -->
+  <script>
+    // State
+    const state = {
+      theme: 'dark',
+      isPlaying: false,
+      speed: 5,
+      fontSize: 52,
+      contentWidth: 900,
+      lineHeight: 1.5,
+      textColor: '#ffffff',
+      textAlign: 'left',
+      mirrorH: false,
+      mirrorV: false,
+      showGuide: true,
+      countdownEnabled: true,
+      countdownDuration: 3,
+      hudVisible: true,
+      scrollPos: 0,
+      lastTimestamp: null,
+      elapsedSeconds: 0,
+      timerInterval: null,
+      isCountingDown: false,
+      countdownTimerId: null
+    };
+
+    // DOM Elements
+    const viewport = document.getElementById('viewport');
+    const prompterContent = document.getElementById('prompter-content');
+    const hud = document.getElementById('hud');
+    const hudHint = document.getElementById('hud-hint');
+    const topBar = document.getElementById('top-bar');
+    const guideOverlay = document.getElementById('guide-overlay');
+    const countdownOverlay = document.getElementById('countdown-overlay');
+
+    const btnPlayPause = document.getElementById('btn-play-pause');
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+    const playText = document.getElementById('play-text');
+    const btnRewind = document.getElementById('btn-rewind');
+    const btnMirror = document.getElementById('btn-mirror');
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    const btnEdit = document.getElementById('btn-edit');
+    const btnSettings = document.getElementById('btn-settings');
+    const btnThemeToggle = document.getElementById('btn-theme-toggle');
+    const themeSunIcon = document.getElementById('theme-sun-icon');
+    const themeMoonIcon = document.getElementById('theme-moon-icon');
+
+    const speedSlider = document.getElementById('speed-slider');
+    const speedVal = document.getElementById('speed-val');
+    const fontsizeSlider = document.getElementById('fontsize-slider');
+    const fontsizeVal = document.getElementById('fontsize-val');
+
+    // Modals
+    const editorModal = document.getElementById('editor-modal');
+    const scriptTextarea = document.getElementById('script-textarea');
+    const btnCloseEditor = document.getElementById('btn-close-editor');
+    const btnSaveScript = document.getElementById('btn-save-script');
+    const btnLoadSample = document.getElementById('btn-load-sample');
+    const modalWordCount = document.getElementById('modal-word-count');
+
+    const settingsModal = document.getElementById('settings-modal');
+    const btnCloseSettings = document.getElementById('btn-close-settings');
+    const btnDoneSettings = document.getElementById('btn-done-settings');
+    const btnThemeDark = document.getElementById('btn-theme-dark');
+    const btnThemeLight = document.getElementById('btn-theme-light');
+    const toggleGuide = document.getElementById('toggle-guide');
+    const toggleCountdown = document.getElementById('toggle-countdown');
+    const countdownSlider = document.getElementById('countdown-slider');
+    const countdownVal = document.getElementById('countdown-val');
+    const countdownDurationRow = document.getElementById('countdown-duration-row');
+    const toggleFlipV = document.getElementById('toggle-flip-v');
+    const widthSlider = document.getElementById('width-slider');
+    const widthVal = document.getElementById('width-val');
+    const lineheightSlider = document.getElementById('lineheight-slider');
+    const lineheightVal = document.getElementById('lineheight-val');
+    const btnAlignLeft = document.getElementById('btn-align-left');
+    const btnAlignCenter = document.getElementById('btn-align-center');
+    const colorSwatches = document.querySelectorAll('.color-swatch');
+
+    // Counters
+    const elapsedTimeEl = document.getElementById('elapsed-time');
+    const remainingTimeEl = document.getElementById('remaining-time');
+    const wordCountEl = document.getElementById('word-count');
+
+    // Load saved settings & script
+    function loadSavedState() {
+      try {
+        const savedScript = localStorage.getItem('tp_script');
+        if (savedScript) {
+          prompterContent.textContent = savedScript;
+          scriptTextarea.value = savedScript;
+        } else {
+          scriptTextarea.value = prompterContent.textContent;
+        }
+
+        const savedSettings = JSON.parse(localStorage.getItem('tp_settings') || '{}');
+        if (savedSettings.theme) state.theme = savedSettings.theme;
+        if (savedSettings.speed !== undefined) state.speed = savedSettings.speed;
+        if (savedSettings.fontSize !== undefined) state.fontSize = savedSettings.fontSize;
+        if (savedSettings.contentWidth !== undefined) state.contentWidth = savedSettings.contentWidth;
+        if (savedSettings.lineHeight !== undefined) state.lineHeight = savedSettings.lineHeight;
+        if (savedSettings.textColor) state.textColor = savedSettings.textColor;
+        if (savedSettings.textAlign) state.textAlign = savedSettings.textAlign;
+        if (savedSettings.mirrorH !== undefined) state.mirrorH = savedSettings.mirrorH;
+        if (savedSettings.mirrorV !== undefined) state.mirrorV = savedSettings.mirrorV;
+        if (savedSettings.showGuide !== undefined) state.showGuide = savedSettings.showGuide;
+        if (savedSettings.countdownEnabled !== undefined) state.countdownEnabled = savedSettings.countdownEnabled;
+        if (savedSettings.countdownDuration !== undefined) state.countdownDuration = savedSettings.countdownDuration;
+      } catch (e) {
+        console.error('Failed to load settings:', e);
+      }
+
+      applyTheme(state.theme, false);
+      applyStateToUI();
+      updateStats();
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('tp_script', prompterContent.textContent);
+        localStorage.setItem('tp_settings', JSON.stringify({
+          theme: state.theme,
+          speed: state.speed,
+          fontSize: state.fontSize,
+          contentWidth: state.contentWidth,
+          lineHeight: state.lineHeight,
+          textColor: state.textColor,
+          textAlign: state.textAlign,
+          mirrorH: state.mirrorH,
+          mirrorV: state.mirrorV,
+          showGuide: state.showGuide,
+          countdownEnabled: state.countdownEnabled,
+          countdownDuration: state.countdownDuration
+        }));
+      } catch (e) {
+        console.error('Failed to save settings:', e);
+      }
+    }
+
+    function applyTheme(theme, autoAdjustTextColor = true) {
+      state.theme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+
+      if (theme === 'light') {
+        themeSunIcon.style.display = 'none';
+        themeMoonIcon.style.display = 'inline';
+        btnThemeDark.classList.remove('btn-primary');
+        btnThemeLight.classList.add('btn-primary');
+        if (autoAdjustTextColor && state.textColor === '#ffffff') {
+          state.textColor = '#0f172a';
+        }
+      } else {
+        themeSunIcon.style.display = 'inline';
+        themeMoonIcon.style.display = 'none';
+        btnThemeLight.classList.remove('btn-primary');
+        btnThemeDark.classList.add('btn-primary');
+        if (autoAdjustTextColor && state.textColor === '#0f172a') {
+          state.textColor = '#ffffff';
+        }
+      }
+
+      document.documentElement.style.setProperty('--text-color', state.textColor);
+      updateColorSwatches();
+      saveState();
+    }
+
+    function toggleTheme() {
+      applyTheme(state.theme === 'dark' ? 'light' : 'dark', true);
+    }
+
+    function updateColorSwatches() {
+      colorSwatches.forEach(swatch => {
+        swatch.classList.toggle('active', swatch.getAttribute('data-color') === state.textColor);
+      });
+    }
+
+    function applyStateToUI() {
+      speedSlider.value = state.speed;
+      speedVal.textContent = state.speed + 'x';
+
+      fontsizeSlider.value = state.fontSize;
+      fontsizeVal.textContent = state.fontSize + 'px';
+      document.documentElement.style.setProperty('--font-size', state.fontSize + 'px');
+
+      widthSlider.value = state.contentWidth;
+      widthVal.textContent = state.contentWidth + 'px';
+      document.documentElement.style.setProperty('--content-width', state.contentWidth + 'px');
+
+      lineheightSlider.value = state.lineHeight;
+      lineheightVal.textContent = state.lineHeight;
+      document.documentElement.style.setProperty('--line-height', state.lineHeight);
+
+      document.documentElement.style.setProperty('--text-color', state.textColor);
+      updateColorSwatches();
+
+      prompterContent.style.textAlign = state.textAlign;
+
+      guideOverlay.classList.toggle('hidden', !state.showGuide);
+      toggleGuide.checked = state.showGuide;
+
+      toggleCountdown.checked = state.countdownEnabled;
+      countdownSlider.value = state.countdownDuration;
+      countdownVal.textContent = state.countdownDuration + 's';
+      countdownDurationRow.style.opacity = state.countdownEnabled ? '1' : '0.4';
+      countdownSlider.disabled = !state.countdownEnabled;
+
+      toggleFlipV.checked = state.mirrorV;
+      applyTransforms();
+    }
+
+    function applyTransforms() {
+      prompterContent.classList.remove('mirror-h', 'mirror-v', 'mirror-both');
+      if (state.mirrorH && state.mirrorV) {
+        prompterContent.classList.add('mirror-both');
+      } else if (state.mirrorH) {
+        prompterContent.classList.add('mirror-h');
+      } else if (state.mirrorV) {
+        prompterContent.classList.add('mirror-v');
+      }
+      btnMirror.style.borderColor = state.mirrorH ? 'var(--accent)' : 'var(--btn-border)';
+      btnMirror.style.background = state.mirrorH ? 'rgba(37, 99, 235, 0.25)' : 'var(--btn-bg)';
+    }
+
+    // Smooth Scroll Loop
+    function scrollStep(timestamp) {
+      if (!state.isPlaying) {
+        state.lastTimestamp = null;
+        return;
+      }
+
+      if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+      const delta = (timestamp - state.lastTimestamp) / 1000;
+      state.lastTimestamp = timestamp;
+
+      const pxPerSec = state.speed * 42;
+      state.scrollPos += pxPerSec * delta;
+
+      viewport.scrollTop = state.scrollPos;
+
+      const maxScroll = viewport.scrollHeight - viewport.clientHeight;
+      if (viewport.scrollTop >= maxScroll && maxScroll > 0) {
+        pause();
+        return;
+      }
+
+      requestAnimationFrame(scrollStep);
+    }
+
+    viewport.addEventListener('scroll', () => {
+      if (Math.abs(viewport.scrollTop - state.scrollPos) > 4) {
+        state.scrollPos = viewport.scrollTop;
+      }
+    });
+
+    function play() {
+      if (state.isPlaying || state.isCountingDown) return;
+
+      if (state.countdownEnabled && viewport.scrollTop <= 20) {
+        runCountdown(() => {
+          startPlayback();
+        });
+      } else {
+        startPlayback();
+      }
+    }
+
+    function startPlayback() {
+      state.isPlaying = true;
+      state.scrollPos = viewport.scrollTop;
+      state.lastTimestamp = null;
+
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'inline';
+      playText.textContent = 'Pause';
+      btnPlayPause.classList.add('btn-primary');
+
+      if (!state.timerInterval) {
+        state.timerInterval = setInterval(() => {
+          state.elapsedSeconds++;
+          elapsedTimeEl.textContent = formatTime(state.elapsedSeconds);
+          updateRemainingTime();
+        }, 1000);
+      }
+
+      requestAnimationFrame(scrollStep);
+    }
+
+    function pause() {
+      state.isPlaying = false;
+      playIcon.style.display = 'inline';
+      pauseIcon.style.display = 'none';
+      playText.textContent = 'Play';
+
+      if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+      }
+
+      cancelCountdown();
+    }
+
+    function togglePlay() {
+      if (state.isCountingDown) {
+        cancelCountdown();
+        return;
+      }
+      if (state.isPlaying) {
+        pause();
+      } else {
+        play();
+      }
+    }
+
+    function rewind() {
+      pause();
+      cancelCountdown();
+      state.scrollPos = 0;
+      viewport.scrollTop = 0;
+      state.elapsedSeconds = 0;
+      elapsedTimeEl.textContent = '00:00';
+      updateRemainingTime();
+    }
+
+    function cancelCountdown() {
+      if (state.countdownTimerId) {
+        clearInterval(state.countdownTimerId);
+        state.countdownTimerId = null;
+      }
+      countdownOverlay.classList.remove('active');
+      state.isCountingDown = false;
+    }
+
+    function runCountdown(callback) {
+      cancelCountdown();
+      state.isCountingDown = true;
+      let count = state.countdownDuration || 3;
+      countdownOverlay.textContent = count;
+      countdownOverlay.classList.add('active');
+
+      state.countdownTimerId = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownOverlay.textContent = count;
+        } else {
+          clearInterval(state.countdownTimerId);
+          state.countdownTimerId = null;
+          countdownOverlay.classList.remove('active');
+          state.isCountingDown = false;
+          callback();
+        }
+      }, 950);
+    }
+
+    countdownOverlay.addEventListener('click', () => {
+      if (state.isCountingDown) {
+        cancelCountdown();
+        startPlayback();
+      }
+    });
+
+    function updateStats() {
+      const text = prompterContent.textContent.trim();
+      const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+      wordCountEl.textContent = words.toLocaleString();
+      modalWordCount.textContent = words.toLocaleString() + ' words';
+      updateRemainingTime();
+    }
+
+    function updateRemainingTime() {
+      const maxScroll = viewport.scrollHeight - viewport.clientHeight;
+      if (maxScroll <= 0) {
+        remainingTimeEl.textContent = '--:--';
+        return;
+      }
+      const remainingPx = Math.max(0, maxScroll - viewport.scrollTop);
+      const pxPerSec = state.speed * 42;
+      const secondsLeft = Math.round(remainingPx / pxPerSec);
+      remainingTimeEl.textContent = formatTime(secondsLeft);
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function toggleHud() {
+      state.hudVisible = !state.hudVisible;
+      hud.classList.toggle('hidden', !state.hudVisible);
+      topBar.classList.toggle('hidden', !state.hudVisible);
+      hudHint.classList.toggle('hidden', !state.hudVisible);
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // Sliders
+    speedSlider.addEventListener('input', (e) => {
+      state.speed = parseFloat(e.target.value);
+      speedVal.textContent = state.speed + 'x';
+      saveState();
+      updateRemainingTime();
+    });
+
+    fontsizeSlider.addEventListener('input', (e) => {
+      state.fontSize = parseInt(e.target.value);
+      fontsizeVal.textContent = state.fontSize + 'px';
+      document.documentElement.style.setProperty('--font-size', state.fontSize + 'px');
+      saveState();
+    });
+
+    widthSlider.addEventListener('input', (e) => {
+      state.contentWidth = parseInt(e.target.value);
+      widthVal.textContent = state.contentWidth + 'px';
+      document.documentElement.style.setProperty('--content-width', state.contentWidth + 'px');
+      saveState();
+    });
+
+    lineheightSlider.addEventListener('input', (e) => {
+      state.lineHeight = parseFloat(e.target.value);
+      lineheightVal.textContent = state.lineHeight;
+      document.documentElement.style.setProperty('--line-height', state.lineHeight);
+      saveState();
+    });
+
+    countdownSlider.addEventListener('input', (e) => {
+      state.countdownDuration = parseInt(e.target.value, 10);
+      countdownVal.textContent = state.countdownDuration + 's';
+      saveState();
+    });
+
+    // Buttons
+    btnPlayPause.addEventListener('click', togglePlay);
+    btnRewind.addEventListener('click', rewind);
+    btnMirror.addEventListener('click', () => {
+      state.mirrorH = !state.mirrorH;
+      applyTransforms();
+      saveState();
+    });
+    btnFullscreen.addEventListener('click', toggleFullscreen);
+    btnThemeToggle.addEventListener('click', toggleTheme);
+    btnThemeDark.addEventListener('click', () => applyTheme('dark', true));
+    btnThemeLight.addEventListener('click', () => applyTheme('light', true));
+
+    toggleGuide.addEventListener('change', (e) => {
+      state.showGuide = e.target.checked;
+      guideOverlay.classList.toggle('hidden', !state.showGuide);
+      saveState();
+    });
+
+    toggleCountdown.addEventListener('change', (e) => {
+      state.countdownEnabled = e.target.checked;
+      countdownSlider.disabled = !state.countdownEnabled;
+      countdownDurationRow.style.opacity = state.countdownEnabled ? '1' : '0.4';
+      saveState();
+    });
+
+    toggleFlipV.addEventListener('change', (e) => {
+      state.mirrorV = e.target.checked;
+      applyTransforms();
+      saveState();
+    });
+
+    btnAlignLeft.addEventListener('click', () => {
+      state.textAlign = 'left';
+      prompterContent.style.textAlign = 'left';
+      saveState();
+    });
+    btnAlignCenter.addEventListener('click', () => {
+      state.textAlign = 'center';
+      prompterContent.style.textAlign = 'center';
+      saveState();
+    });
+
+    colorSwatches.forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        state.textColor = swatch.getAttribute('data-color');
+        document.documentElement.style.setProperty('--text-color', state.textColor);
+        updateColorSwatches();
+        saveState();
+      });
+    });
+
+    // Modals
+    btnEdit.addEventListener('click', () => {
+      pause();
+      scriptTextarea.value = prompterContent.textContent;
+      const words = scriptTextarea.value.trim().split(/\s+/).filter(Boolean).length;
+      modalWordCount.textContent = words.toLocaleString() + ' words';
+      editorModal.classList.add('active');
+      scriptTextarea.focus();
+    });
+
+    btnCloseEditor.addEventListener('click', () => {
+      editorModal.classList.remove('active');
+    });
+
+    btnSaveScript.addEventListener('click', () => {
+      const text = scriptTextarea.value.trim();
+      prompterContent.textContent = text || 'Please enter script in editor.';
+      editorModal.classList.remove('active');
+      rewind();
+      updateStats();
+      saveState();
+    });
+
+    btnLoadSample.addEventListener('click', () => {
+      scriptTextarea.value = `Good morning and welcome to today's keynote presentation.
+
+Today, we are thrilled to unveil our latest breakthroughs in creative technology. Over the past year, our team has worked tirelessly to build tools that empower communicators, creators, and leaders worldwide.
+
+As we look at the changing landscape of modern broadcasting, three fundamental themes stand out:
+
+First, clarity of delivery. When you speak directly to your audience, every pause and every expression matters.
+
+Second, seamless tools that stay completely out of your way, giving you full control over your pacing.
+
+And third, accessibility. High quality teleprompting should be available directly in your browser on any device, with no expensive hardware required.
+
+Thank you so much for joining us today, and let us begin our journey into what comes next!`;
+      const words = scriptTextarea.value.trim().split(/\s+/).filter(Boolean).length;
+      modalWordCount.textContent = words.toLocaleString() + ' words';
+    });
+
+    scriptTextarea.addEventListener('input', () => {
+      const words = scriptTextarea.value.trim().split(/\s+/).filter(Boolean).length;
+      modalWordCount.textContent = words.toLocaleString() + ' words';
+    });
+
+    btnSettings.addEventListener('click', () => {
+      pause();
+      settingsModal.classList.add('active');
+    });
+
+    btnCloseSettings.addEventListener('click', () => {
+      settingsModal.classList.remove('active');
+    });
+
+    btnDoneSettings.addEventListener('click', () => {
+      settingsModal.classList.remove('active');
+    });
+
+    window.addEventListener('click', (e) => {
+      if (e.target === editorModal) editorModal.classList.remove('active');
+      if (e.target === settingsModal) settingsModal.classList.remove('active');
+    });
+
+    // Keyboard Shortcuts (PC)
+    window.addEventListener('keydown', (e) => {
+      if (document.activeElement === scriptTextarea) {
+        if (e.key === 'Escape') {
+          editorModal.classList.remove('active');
+        }
+        return;
+      }
+
+      switch (e.key) {
+        case ' ':
+          e.preventDefault();
+          togglePlay();
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          state.speed = Math.min(20, +(state.speed + 0.5).toFixed(1));
+          speedSlider.value = state.speed;
+          speedVal.textContent = state.speed + 'x';
+          saveState();
+          updateRemainingTime();
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          state.speed = Math.max(1, +(state.speed - 0.5).toFixed(1));
+          speedSlider.value = state.speed;
+          speedVal.textContent = state.speed + 'x';
+          saveState();
+          updateRemainingTime();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          state.scrollPos = Math.max(0, state.scrollPos - 150);
+          viewport.scrollTop = state.scrollPos;
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          state.scrollPos = state.scrollPos + 150;
+          viewport.scrollTop = state.scrollPos;
+          break;
+        case 'r':
+        case 'R':
+        case 'Home':
+          e.preventDefault();
+          rewind();
+          break;
+        case 'm':
+        case 'M':
+          state.mirrorH = !state.mirrorH;
+          applyTransforms();
+          saveState();
+          break;
+        case 'h':
+        case 'H':
+          toggleHud();
+          break;
+        case 'f':
+        case 'F':
+          toggleFullscreen();
+          break;
+        case 't':
+        case 'T':
+          toggleTheme();
+          break;
+        case 'Escape':
+          if (editorModal.classList.contains('active')) {
+            editorModal.classList.remove('active');
+          } else if (settingsModal.classList.contains('active')) {
+            settingsModal.classList.remove('active');
+          } else {
+            btnEdit.click();
+          }
+          break;
+      }
+    });
+
+    // Mouse Drag-to-Scroll & Tap/Click Detection
+    let isMouseDown = false;
+    let mouseStartY = 0;
+    let mouseStartScrollTop = 0;
+    let mouseStartTime = 0;
+    let hasMouseMoved = false;
+
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      if (e.target.closest('#hud') || e.target.closest('#top-bar') || e.target.closest('.modal-box')) return;
+
+      isMouseDown = true;
+      hasMouseMoved = false;
+      mouseStartY = e.clientY;
+      mouseStartScrollTop = viewport.scrollTop;
+      mouseStartTime = Date.now();
+      viewport.style.cursor = 'grab';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isMouseDown) return;
+      const deltaY = e.clientY - mouseStartY;
+      if (Math.abs(deltaY) > 5) {
+        hasMouseMoved = true;
+        viewport.style.cursor = 'grabbing';
+      }
+      viewport.scrollTop = mouseStartScrollTop - deltaY;
+      state.scrollPos = viewport.scrollTop;
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (!isMouseDown) return;
+      isMouseDown = false;
+      viewport.style.cursor = '';
+
+      const elapsed = Date.now() - mouseStartTime;
+      // If it was a clean click without significant drag (< 6px movement & < 350ms):
+      if (!hasMouseMoved && elapsed < 350) {
+        if (editorModal.classList.contains('active') || settingsModal.classList.contains('active')) return;
+
+        if (!state.hudVisible) {
+          toggleHud();
+          return;
+        }
+
+        if (hud.style.opacity === '0') {
+          hud.style.opacity = '1';
+          topBar.style.opacity = '1';
+          hudHint.style.opacity = '1';
+          return;
+        }
+
+        togglePlay();
+      }
+    });
+
+    // Touch Support for Mobile / Tablets
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', (e) => {
+      if (e.changedTouches.length === 1) {
+        const deltaX = Math.abs(e.changedTouches[0].clientX - touchStartX);
+        const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartY);
+        const elapsed = Date.now() - touchStartTime;
+
+        if (deltaX < 12 && deltaY < 12 && elapsed < 300) {
+          if (editorModal.classList.contains('active') || settingsModal.classList.contains('active')) return;
+
+          if (!state.hudVisible) {
+            toggleHud();
+            return;
+          }
+
+          if (hud.style.opacity === '0') {
+            hud.style.opacity = '1';
+            topBar.style.opacity = '1';
+            return;
+          }
+
+          togglePlay();
+        }
+      }
+    }, { passive: true });
+
+    // Mouse idle auto-fade HUD during playback
+    let idleTimer = null;
+    window.addEventListener('mousemove', () => {
+      if (!state.hudVisible) return;
+      hud.style.opacity = '1';
+      topBar.style.opacity = '1';
+      hudHint.style.opacity = '1';
+      clearTimeout(idleTimer);
+      if (state.isPlaying) {
+        idleTimer = setTimeout(() => {
+          hud.style.opacity = '0';
+          topBar.style.opacity = '0';
+          hudHint.style.opacity = '0';
+        }, 2500);
+      }
+    });
+
+    // Initialize
+    loadSavedState();
+  </script>
 </body>
 </html>

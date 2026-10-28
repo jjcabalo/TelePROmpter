@@ -1,10 +1,513 @@
 /**
- * TelePROmpter Application Core
- * Coordinates UI components, playback loop, storage, and event routing.
+ * TelePROmpter Application Core & UI Components
+ * Coordinates components, playback loop, storage, and event routing.
  */
 (function() {
   window.Teleprompter = window.Teleprompter || {};
+  window.Teleprompter.components = window.Teleprompter.components || {};
 
+  // 1. ReadingGuide Component
+  if (!window.Teleprompter.components.ReadingGuide) {
+    window.Teleprompter.components.ReadingGuide = {
+      init(state) {
+        this.state = state;
+        this.el = document.getElementById('guide-overlay');
+        this.update();
+      },
+      update() {
+        if (!this.el) return;
+        this.el.classList.toggle('hidden', !this.state.showGuide);
+      },
+      toggle(show) {
+        this.state.showGuide = show !== undefined ? show : !this.state.showGuide;
+        this.update();
+      }
+    };
+  }
+
+  // 2. CountdownOverlay Component
+  if (!window.Teleprompter.components.CountdownOverlay) {
+    window.Teleprompter.components.CountdownOverlay = {
+      init(state, callbacks) {
+        this.state = state;
+        this.callbacks = callbacks || {};
+        this.el = document.getElementById('countdown-overlay');
+
+        if (this.el) {
+          this.el.addEventListener('click', () => {
+            if (this.state.isCountingDown) {
+              this.cancel();
+              if (this.callbacks.onSkip) this.callbacks.onSkip();
+            }
+          });
+        }
+      },
+      start(callback) {
+        this.cancel();
+        this.state.isCountingDown = true;
+        let count = this.state.countdownDuration || 3;
+        this.el.textContent = count;
+        this.el.classList.add('active');
+
+        this.state.countdownTimerId = setInterval(() => {
+          count--;
+          if (count > 0) {
+            this.el.textContent = count;
+          } else {
+            this.cancel();
+            if (callback) callback();
+          }
+        }, 950);
+      },
+      cancel() {
+        if (this.state.countdownTimerId) {
+          clearInterval(this.state.countdownTimerId);
+          this.state.countdownTimerId = null;
+        }
+        if (this.el) {
+          this.el.classList.remove('active');
+        }
+        this.state.isCountingDown = false;
+      }
+    };
+  }
+
+  // 3. TopBar Component
+  if (!window.Teleprompter.components.TopBar) {
+    window.Teleprompter.components.TopBar = {
+      init(state, callbacks) {
+        this.state = state;
+        this.callbacks = callbacks || {};
+
+        this.el = document.getElementById('top-bar');
+        this.elapsedTimeEl = document.getElementById('elapsed-time');
+        this.remainingTimeEl = document.getElementById('remaining-time');
+        this.wordCountEl = document.getElementById('word-count');
+
+        this.btnThemeToggle = document.getElementById('btn-theme-toggle');
+        this.themeSunIcon = document.getElementById('theme-sun-icon');
+        this.themeMoonIcon = document.getElementById('theme-moon-icon');
+
+        this.btnEdit = document.getElementById('btn-edit');
+        this.btnSettings = document.getElementById('btn-settings');
+        this.btnFullscreen = document.getElementById('btn-fullscreen');
+
+        this.bindEvents();
+      },
+      bindEvents() {
+        if (this.btnThemeToggle) {
+          this.btnThemeToggle.addEventListener('click', () => {
+            if (this.callbacks.onToggleTheme) this.callbacks.onToggleTheme();
+          });
+        }
+        if (this.btnEdit) {
+          this.btnEdit.addEventListener('click', () => {
+            if (this.callbacks.onOpenEditor) this.callbacks.onOpenEditor();
+          });
+        }
+        if (this.btnSettings) {
+          this.btnSettings.addEventListener('click', () => {
+            if (this.callbacks.onOpenSettings) this.callbacks.onOpenSettings();
+          });
+        }
+        if (this.btnFullscreen) {
+          this.btnFullscreen.addEventListener('click', () => {
+            if (this.callbacks.onToggleFullscreen) this.callbacks.onToggleFullscreen();
+          });
+        }
+      },
+      updateTheme(theme) {
+        if (!this.themeSunIcon || !this.themeMoonIcon) return;
+        if (theme === 'light') {
+          this.themeSunIcon.style.display = 'none';
+          this.themeMoonIcon.style.display = 'inline';
+        } else {
+          this.themeSunIcon.style.display = 'inline';
+          this.themeMoonIcon.style.display = 'none';
+        }
+      },
+      updateStats(wordCount, remainingFormatted) {
+        if (this.wordCountEl) this.wordCountEl.textContent = wordCount.toLocaleString();
+        if (this.remainingTimeEl) this.remainingTimeEl.textContent = remainingFormatted;
+      },
+      updateElapsed(elapsedFormatted) {
+        if (this.elapsedTimeEl) this.elapsedTimeEl.textContent = elapsedFormatted;
+      },
+      toggleVisibility(visible) {
+        if (this.el) {
+          this.el.classList.toggle('hidden', !visible);
+        }
+      }
+    };
+  }
+
+  // 4. HudControls Component
+  if (!window.Teleprompter.components.HudControls) {
+    window.Teleprompter.components.HudControls = {
+      init(state, callbacks) {
+        this.state = state;
+        this.callbacks = callbacks || {};
+
+        this.el = document.getElementById('hud');
+        this.hudHint = document.getElementById('hud-hint');
+
+        this.btnPlayPause = document.getElementById('btn-play-pause');
+        this.playIcon = document.getElementById('play-icon');
+        this.pauseIcon = document.getElementById('pause-icon');
+        this.playText = document.getElementById('play-text');
+
+        this.btnRewind = document.getElementById('btn-rewind');
+        this.btnMirror = document.getElementById('btn-mirror');
+
+        this.speedSlider = document.getElementById('speed-slider');
+        this.speedVal = document.getElementById('speed-val');
+        this.fontsizeSlider = document.getElementById('fontsize-slider');
+        this.fontsizeVal = document.getElementById('fontsize-val');
+
+        this.idleTimer = null;
+
+        this.bindEvents();
+        this.setupIdleFade();
+      },
+      bindEvents() {
+        if (this.btnPlayPause) {
+          this.btnPlayPause.addEventListener('click', () => {
+            if (this.callbacks.onTogglePlay) this.callbacks.onTogglePlay();
+          });
+        }
+        if (this.btnRewind) {
+          this.btnRewind.addEventListener('click', () => {
+            if (this.callbacks.onRewind) this.callbacks.onRewind();
+          });
+        }
+        if (this.btnMirror) {
+          this.btnMirror.addEventListener('click', () => {
+            if (this.callbacks.onToggleMirror) this.callbacks.onToggleMirror();
+          });
+        }
+        if (this.speedSlider) {
+          this.speedSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (this.callbacks.onSpeedChange) this.callbacks.onSpeedChange(val);
+          });
+        }
+        if (this.fontsizeSlider) {
+          this.fontsizeSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            if (this.callbacks.onFontSizeChange) this.callbacks.onFontSizeChange(val);
+          });
+        }
+      },
+      setupIdleFade() {
+        window.addEventListener('mousemove', () => {
+          if (!this.state.hudVisible) return;
+          this.showActive();
+          clearTimeout(this.idleTimer);
+          if (this.state.isPlaying) {
+            this.idleTimer = setTimeout(() => {
+              this.fadeIdle();
+            }, 2500);
+          }
+        });
+      },
+      showActive() {
+        if (this.el) this.el.style.opacity = '1';
+        const topBar = document.getElementById('top-bar');
+        if (topBar) topBar.style.opacity = '1';
+        if (this.hudHint) this.hudHint.style.opacity = '1';
+      },
+      fadeIdle() {
+        if (this.el) this.el.style.opacity = '0';
+        const topBar = document.getElementById('top-bar');
+        if (topBar) topBar.style.opacity = '0';
+        if (this.hudHint) this.hudHint.style.opacity = '0';
+      },
+      setPlaying(isPlaying) {
+        if (!this.btnPlayPause) return;
+        if (isPlaying) {
+          this.playIcon.style.display = 'none';
+          this.pauseIcon.style.display = 'inline';
+          this.playText.textContent = 'Pause';
+          this.btnPlayPause.classList.add('btn-primary');
+        } else {
+          this.playIcon.style.display = 'inline';
+          this.pauseIcon.style.display = 'none';
+          this.playText.textContent = 'Play';
+        }
+      },
+      updateSpeed(speed) {
+        if (this.speedSlider) this.speedSlider.value = speed;
+        if (this.speedVal) this.speedVal.textContent = speed + 'x';
+      },
+      updateFontSize(size) {
+        if (this.fontsizeSlider) this.fontsizeSlider.value = size;
+        if (this.fontsizeVal) this.fontsizeVal.textContent = size + 'px';
+      },
+      updateMirror(isMirrored) {
+        if (!this.btnMirror) return;
+        this.btnMirror.style.borderColor = isMirrored ? 'var(--accent)' : 'var(--btn-border)';
+        this.btnMirror.style.background = isMirrored ? 'rgba(37, 99, 235, 0.25)' : 'var(--btn-bg)';
+      },
+      toggleVisibility(visible) {
+        if (this.el) this.el.classList.toggle('hidden', !visible);
+        if (this.hudHint) this.hudHint.classList.toggle('hidden', !visible);
+      }
+    };
+  }
+
+  // 5. EditorModal Component
+  if (!window.Teleprompter.components.EditorModal) {
+    window.Teleprompter.components.EditorModal = {
+      init(state, callbacks) {
+        this.state = state;
+        this.callbacks = callbacks || {};
+
+        this.el = document.getElementById('editor-modal');
+        this.textarea = document.getElementById('script-textarea');
+        this.btnClose = document.getElementById('btn-close-editor');
+        this.btnSave = document.getElementById('btn-save-script');
+        this.btnSample = document.getElementById('btn-load-sample');
+        this.wordCountEl = document.getElementById('modal-word-count');
+
+        this.sampleScript = `Good morning and welcome to today's keynote presentation.
+
+Today, we are thrilled to unveil our latest breakthroughs in creative technology. Over the past year, our team has worked tirelessly to build tools that empower communicators, creators, and leaders worldwide.
+
+As we look at the changing landscape of modern broadcasting, three fundamental themes stand out:
+
+First, clarity of delivery. When you speak directly to your audience, every pause and every expression matters.
+
+Second, seamless tools that stay completely out of your way, giving you full control over your pacing.
+
+And third, accessibility. High quality teleprompting should be available directly in your browser on any device, with no expensive hardware required.
+
+Thank you so much for joining us today, and let us begin our journey into what comes next!`;
+
+        this.bindEvents();
+      },
+      bindEvents() {
+        if (this.btnClose) {
+          this.btnClose.addEventListener('click', () => this.close());
+        }
+        if (this.btnSave) {
+          this.btnSave.addEventListener('click', () => {
+            const text = this.textarea ? this.textarea.value.trim() : '';
+            this.close();
+            if (this.callbacks.onSave) {
+              this.callbacks.onSave(text || 'Please enter script in editor.');
+            }
+          });
+        }
+        if (this.btnSample) {
+          this.btnSample.addEventListener('click', () => {
+            if (this.textarea) {
+              this.textarea.value = this.sampleScript;
+              this.updateWordCount(this.sampleScript);
+            }
+          });
+        }
+        if (this.textarea) {
+          this.textarea.addEventListener('input', () => {
+            this.updateWordCount(this.textarea.value);
+          });
+        }
+        window.addEventListener('click', (e) => {
+          if (e.target === this.el) {
+            this.close();
+          }
+        });
+      },
+      updateWordCount(text) {
+        const words = (text || '').trim().split(/\s+/).filter(Boolean).length;
+        if (this.wordCountEl) {
+          this.wordCountEl.textContent = words.toLocaleString() + ' words';
+        }
+      },
+      open(currentScript) {
+        if (this.textarea) {
+          this.textarea.value = currentScript || '';
+          this.updateWordCount(this.textarea.value);
+        }
+        if (this.el) {
+          this.el.classList.add('active');
+        }
+        if (this.textarea) {
+          this.textarea.focus();
+        }
+      },
+      close() {
+        if (this.el) {
+          this.el.classList.remove('active');
+        }
+      },
+      isOpen() {
+        return this.el && this.el.classList.contains('active');
+      }
+    };
+  }
+
+  // 6. SettingsModal Component
+  if (!window.Teleprompter.components.SettingsModal) {
+    window.Teleprompter.components.SettingsModal = {
+      init(state, callbacks) {
+        this.state = state;
+        this.callbacks = callbacks || {};
+
+        this.el = document.getElementById('settings-modal');
+        this.btnClose = document.getElementById('btn-close-settings');
+        this.btnDone = document.getElementById('btn-done-settings');
+
+        this.btnThemeDark = document.getElementById('btn-theme-dark');
+        this.btnThemeLight = document.getElementById('btn-theme-light');
+        this.colorSwatches = document.querySelectorAll('.color-swatch');
+
+        this.toggleGuide = document.getElementById('toggle-guide');
+        this.toggleCountdown = document.getElementById('toggle-countdown');
+        this.countdownSlider = document.getElementById('countdown-slider');
+        this.countdownVal = document.getElementById('countdown-val');
+        this.countdownDurationRow = document.getElementById('countdown-duration-row');
+
+        this.widthSlider = document.getElementById('width-slider');
+        this.widthVal = document.getElementById('width-val');
+        this.lineheightSlider = document.getElementById('lineheight-slider');
+        this.lineheightVal = document.getElementById('lineheight-val');
+
+        this.btnAlignLeft = document.getElementById('btn-align-left');
+        this.btnAlignCenter = document.getElementById('btn-align-center');
+        this.toggleFlipV = document.getElementById('toggle-flip-v');
+
+        this.bindEvents();
+      },
+      bindEvents() {
+        if (this.btnClose) this.btnClose.addEventListener('click', () => this.close());
+        if (this.btnDone) this.btnDone.addEventListener('click', () => this.close());
+
+        if (this.btnThemeDark) {
+          this.btnThemeDark.addEventListener('click', () => {
+            if (this.callbacks.onSetTheme) this.callbacks.onSetTheme('dark');
+          });
+        }
+        if (this.btnThemeLight) {
+          this.btnThemeLight.addEventListener('click', () => {
+            if (this.callbacks.onSetTheme) this.callbacks.onSetTheme('light');
+          });
+        }
+        if (this.colorSwatches) {
+          this.colorSwatches.forEach(swatch => {
+            swatch.addEventListener('click', () => {
+              const color = swatch.getAttribute('data-color');
+              if (this.callbacks.onColorChange) this.callbacks.onColorChange(color);
+            });
+          });
+        }
+        if (this.toggleGuide) {
+          this.toggleGuide.addEventListener('change', (e) => {
+            if (this.callbacks.onToggleGuide) this.callbacks.onToggleGuide(e.target.checked);
+          });
+        }
+        if (this.toggleCountdown) {
+          this.toggleCountdown.addEventListener('change', (e) => {
+            if (this.callbacks.onToggleCountdown) this.callbacks.onToggleCountdown(e.target.checked);
+          });
+        }
+        if (this.countdownSlider) {
+          this.countdownSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            if (this.callbacks.onCountdownDurationChange) this.callbacks.onCountdownDurationChange(val);
+          });
+        }
+        if (this.widthSlider) {
+          this.widthSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            if (this.callbacks.onWidthChange) this.callbacks.onWidthChange(val);
+          });
+        }
+        if (this.lineheightSlider) {
+          this.lineheightSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (this.callbacks.onLineHeightChange) this.callbacks.onLineHeightChange(val);
+          });
+        }
+        if (this.btnAlignLeft) {
+          this.btnAlignLeft.addEventListener('click', () => {
+            if (this.callbacks.onAlignChange) this.callbacks.onAlignChange('left');
+          });
+        }
+        if (this.btnAlignCenter) {
+          this.btnAlignCenter.addEventListener('click', () => {
+            if (this.callbacks.onAlignChange) this.callbacks.onAlignChange('center');
+          });
+        }
+        if (this.toggleFlipV) {
+          this.toggleFlipV.addEventListener('change', (e) => {
+            if (this.callbacks.onToggleFlipV) this.callbacks.onToggleFlipV(e.target.checked);
+          });
+        }
+        window.addEventListener('click', (e) => {
+          if (e.target === this.el) {
+            this.close();
+          }
+        });
+      },
+      syncUI(state) {
+        if (this.widthSlider) {
+          this.widthSlider.value = state.contentWidth;
+          if (this.widthVal) this.widthVal.textContent = state.contentWidth + 'px';
+        }
+        if (this.lineheightSlider) {
+          this.lineheightSlider.value = state.lineHeight;
+          if (this.lineheightVal) this.lineheightVal.textContent = state.lineHeight;
+        }
+        if (this.toggleGuide) {
+          this.toggleGuide.checked = state.showGuide;
+        }
+        if (this.toggleCountdown) {
+          this.toggleCountdown.checked = state.countdownEnabled;
+        }
+        if (this.countdownSlider) {
+          this.countdownSlider.value = state.countdownDuration;
+          this.countdownSlider.disabled = !state.countdownEnabled;
+          if (this.countdownVal) this.countdownVal.textContent = state.countdownDuration + 's';
+        }
+        if (this.countdownDurationRow) {
+          this.countdownDurationRow.style.opacity = state.countdownEnabled ? '1' : '0.4';
+        }
+        if (this.toggleFlipV) {
+          this.toggleFlipV.checked = state.mirrorV;
+        }
+        this.updateThemeButtons(state.theme);
+        this.updateColorSwatches(state.textColor);
+      },
+      updateThemeButtons(theme) {
+        if (!this.btnThemeDark || !this.btnThemeLight) return;
+        if (theme === 'light') {
+          this.btnThemeDark.classList.remove('btn-primary');
+          this.btnThemeLight.classList.add('btn-primary');
+        } else {
+          this.btnThemeLight.classList.remove('btn-primary');
+          this.btnThemeDark.classList.add('btn-primary');
+        }
+      },
+      updateColorSwatches(color) {
+        if (!this.colorSwatches) return;
+        this.colorSwatches.forEach(swatch => {
+          swatch.classList.toggle('active', swatch.getAttribute('data-color') === color);
+        });
+      },
+      open() {
+        this.syncUI(this.state);
+        if (this.el) this.el.classList.add('active');
+      },
+      close() {
+        if (this.el) this.el.classList.remove('active');
+      },
+      isOpen() {
+        return this.el && this.el.classList.contains('active');
+      }
+    };
+  }
+
+  // Application State
   const state = {
     theme: 'dark', // 'dark' | 'light'
     isPlaying: false,
@@ -30,11 +533,9 @@
 
   window.Teleprompter.state = state;
 
-  // Viewport & Content DOM references
   const viewport = document.getElementById('viewport');
   const prompterContent = document.getElementById('prompter-content');
 
-  // Shortcut access to components
   const { ReadingGuide, CountdownOverlay, TopBar, HudControls, EditorModal, SettingsModal } = window.Teleprompter.components;
 
   function loadSavedState() {
@@ -116,34 +617,21 @@
   }
 
   function applyStateToUI() {
-    // Font size
     document.documentElement.style.setProperty('--font-size', state.fontSize + 'px');
     HudControls.updateFontSize(state.fontSize);
 
-    // Speed
     HudControls.updateSpeed(state.speed);
 
-    // Content width
     document.documentElement.style.setProperty('--content-width', state.contentWidth + 'px');
-
-    // Line height
     document.documentElement.style.setProperty('--line-height', state.lineHeight);
-
-    // Text color
     document.documentElement.style.setProperty('--text-color', state.textColor);
 
-    // Text align
     if (prompterContent) {
       prompterContent.style.textAlign = state.textAlign;
     }
 
-    // Guide overlay
     ReadingGuide.update();
-
-    // Mirror transforms
     applyTransforms();
-
-    // Settings modal fields
     SettingsModal.syncUI(state);
   }
 
@@ -160,7 +648,6 @@
     HudControls.updateMirror(state.mirrorH);
   }
 
-  // Smooth scroll loop
   function scrollStep(timestamp) {
     if (!state.isPlaying) {
       state.lastTimestamp = null;
@@ -187,7 +674,6 @@
     requestAnimationFrame(scrollStep);
   }
 
-  // User manual scroll sync
   if (viewport) {
     viewport.addEventListener('scroll', () => {
       if (Math.abs(viewport.scrollTop - state.scrollPos) > 4) {
@@ -304,7 +790,6 @@
     }
   }
 
-  // Initialize UI Components & Callbacks
   ReadingGuide.init(state);
 
   CountdownOverlay.init(state, {
@@ -401,7 +886,6 @@
     }
   });
 
-  // Global Keyboard Shortcuts (PC)
   window.addEventListener('keydown', (e) => {
     if (EditorModal.isOpen()) {
       if (e.key === 'Escape') {
@@ -474,7 +958,6 @@
     }
   });
 
-  // Mobile Touch Support
   if (viewport) {
     let touchStartX = 0;
     let touchStartY = 0;
@@ -514,6 +997,5 @@
     }, { passive: true });
   }
 
-  // Load Initial Settings & Script
   loadSavedState();
 })();

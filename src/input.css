@@ -357,6 +357,11 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease, box-shadow 0.2s ease;
 }
+.top-actions .btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
 .top-actions .btn:hover {
   background: var(--hud-bg);
   border-color: rgba(37, 99, 235, 0.45);
@@ -632,15 +637,19 @@ input:checked + .slider-toggle:before {
   .timer-card {
     height: 36px;
     padding: 0 10px;
-    font-size: 11px;
+    font-size: 16px;
     gap: 8px;
     display: inline-flex;
     align-items: center;
     box-sizing: border-box;
+    line-height: 1;
+  }
+  .timer-item {
+    gap: 5px;
   }
   .timer-icon {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
   }
   .lbl-full {
     display: none;
@@ -792,17 +801,20 @@ input:checked + .slider-toggle:before {
   }
   .timer-card {
     height: 34px;
-    padding: 0 8px;
-    font-size: 10px;
+    padding: 0 6px;
+    font-size: 16px;
     gap: 5px;
+    display: inline-flex;
+    align-items: center;
     box-sizing: border-box;
+    line-height: 1;
   }
   .timer-item {
     gap: 3px;
   }
   .timer-icon {
-    width: 11px;
-    height: 11px;
+    width: 16px;
+    height: 16px;
   }
   .top-actions {
     gap: 4px;
@@ -821,7 +833,7 @@ input:checked + .slider-toggle:before {
   }
   #btn-play-pause {
     padding: 8px 10px;
-    font-size: 14px;
+    font-size: 16px;
   }
   #group-speed input[type="range"],
   #group-size input[type="range"] {

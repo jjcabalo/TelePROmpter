@@ -173,7 +173,9 @@
       position: fixed;
       bottom: 24px;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) translateY(0) scale(1);
+      opacity: 1;
+      visibility: visible;
       background: var(--hud-bg);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
@@ -185,12 +187,22 @@
       gap: 14px;
       z-index: 100;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-      transition: opacity 0.2s ease, visibility 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+      will-change: transform, opacity;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  visibility 0.4s ease,
+                  background-color 0.2s ease,
+                  border-color 0.2s ease;
     }
-    #hud.hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
+    #hud.hidden,
+    #hud.idle-faded {
+      opacity: 0 !important;
+      transform: translateX(-50%) translateY(28px) scale(0.95) !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1),
+                  opacity 0.22s ease,
+                  visibility 0.28s ease;
     }
 
     .btn {
@@ -282,12 +294,23 @@
       align-items: center;
       z-index: 90;
       pointer-events: none;
-      transition: opacity 0.2s ease, visibility 0.2s ease;
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      visibility: visible;
+      will-change: transform, opacity;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  visibility 0.4s ease;
     }
-    #top-bar.hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
+    #top-bar.hidden,
+    #top-bar.idle-faded {
+      opacity: 0 !important;
+      transform: translateY(-22px) scale(0.98) !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1),
+                  opacity 0.22s ease,
+                  visibility 0.28s ease;
     }
     .timer-card {
       background: var(--card-bg);
@@ -471,13 +494,29 @@
       color: var(--hud-subtext);
       background: var(--card-bg);
       backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       padding: 6px 12px;
       border-radius: 20px;
       border: 1px solid var(--card-border);
       pointer-events: none;
-      transition: opacity 0.2s ease, visibility 0.2s ease;
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      visibility: visible;
+      will-change: transform, opacity;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  visibility 0.4s ease;
     }
-    #hud-hint.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    #hud-hint.hidden,
+    #hud-hint.idle-faded {
+      opacity: 0 !important;
+      transform: translateY(18px) scale(0.95) !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1),
+                  opacity 0.22s ease,
+                  visibility 0.28s ease;
+    }
 
     .switch {
       position: relative;
@@ -1123,6 +1162,10 @@ Good luck with your presentation!</div>
         state.timerInterval = null;
       }
 
+      if (typeof idleTimer !== 'undefined' && idleTimer) {
+        clearTimeout(idleTimer);
+      }
+      showControlsActive();
       cancelCountdown();
     }
 
@@ -1211,8 +1254,22 @@ Good luck with your presentation!</div>
       return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
+    function showControlsActive() {
+      hud.classList.remove('idle-faded');
+      topBar.classList.remove('idle-faded');
+      hudHint.classList.remove('idle-faded');
+    }
+
+    function fadeControlsIdle() {
+      if (!state.hudVisible) return;
+      hud.classList.add('idle-faded');
+      topBar.classList.add('idle-faded');
+      hudHint.classList.add('idle-faded');
+    }
+
     function toggleHud() {
       state.hudVisible = !state.hudVisible;
+      showControlsActive();
       hud.classList.toggle('hidden', !state.hudVisible);
       topBar.classList.toggle('hidden', !state.hudVisible);
       hudHint.classList.toggle('hidden', !state.hudVisible);
@@ -1498,10 +1555,8 @@ Thank you so much for joining us today, and let us begin our journey into what c
           return;
         }
 
-        if (hud.style.opacity === '0') {
-          hud.style.opacity = '1';
-          topBar.style.opacity = '1';
-          hudHint.style.opacity = '1';
+        if (hud.classList.contains('idle-faded')) {
+          showControlsActive();
           return;
         }
 
@@ -1536,9 +1591,8 @@ Thank you so much for joining us today, and let us begin our journey into what c
             return;
           }
 
-          if (hud.style.opacity === '0') {
-            hud.style.opacity = '1';
-            topBar.style.opacity = '1';
+          if (hud.classList.contains('idle-faded')) {
+            showControlsActive();
             return;
           }
 
@@ -1551,16 +1605,10 @@ Thank you so much for joining us today, and let us begin our journey into what c
     let idleTimer = null;
     window.addEventListener('mousemove', () => {
       if (!state.hudVisible) return;
-      hud.style.opacity = '1';
-      topBar.style.opacity = '1';
-      hudHint.style.opacity = '1';
+      showControlsActive();
       clearTimeout(idleTimer);
       if (state.isPlaying) {
-        idleTimer = setTimeout(() => {
-          hud.style.opacity = '0';
-          topBar.style.opacity = '0';
-          hudHint.style.opacity = '0';
-        }, 2500);
+        idleTimer = setTimeout(fadeControlsIdle, 2500);
       }
     });
 

@@ -211,16 +211,25 @@
         });
       },
       showActive() {
-        if (this.el) this.el.style.opacity = '1';
+        if (this.el) {
+          this.el.style.opacity = '';
+          this.el.classList.remove('idle-faded');
+        }
         const topBar = document.getElementById('top-bar');
-        if (topBar) topBar.style.opacity = '1';
-        if (this.hudHint) this.hudHint.style.opacity = '1';
+        if (topBar) {
+          topBar.style.opacity = '';
+          topBar.classList.remove('idle-faded');
+        }
+        if (this.hudHint) {
+          this.hudHint.style.opacity = '';
+          this.hudHint.classList.remove('idle-faded');
+        }
       },
       fadeIdle() {
-        if (this.el) this.el.style.opacity = '0';
+        if (this.el) this.el.classList.add('idle-faded');
         const topBar = document.getElementById('top-bar');
-        if (topBar) topBar.style.opacity = '0';
-        if (this.hudHint) this.hudHint.style.opacity = '0';
+        if (topBar) topBar.classList.add('idle-faded');
+        if (this.hudHint) this.hudHint.classList.add('idle-faded');
       },
       setPlaying(isPlaying) {
         if (!this.btnPlayPause) return;
@@ -986,7 +995,7 @@ Thank you so much for joining us today, and let us begin our journey into what c
           }
 
           const hudEl = document.getElementById('hud');
-          if (hudEl && hudEl.style.opacity === '0') {
+          if (hudEl && (hudEl.classList.contains('idle-faded') || hudEl.style.opacity === '0')) {
             HudControls.showActive();
             return;
           }

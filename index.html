@@ -317,16 +317,19 @@
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid var(--card-border);
-      padding: 6px 14px;
+      height: 36px;
+      padding: 0 14px;
       border-radius: 20px;
       font-size: 13px;
       color: var(--hud-text);
-      display: flex;
+      display: inline-flex;
+      align-items: center;
       gap: 12px;
       pointer-events: auto;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
       transition: background-color 0.2s ease, color 0.2s ease;
       white-space: nowrap;
+      box-sizing: border-box;
     }
     .timer-item {
       display: inline-flex;
@@ -559,11 +562,28 @@
 
     @media (max-width: 768px) {
       #top-bar { top: 10px; left: 12px; right: 12px; gap: 8px; }
-      .timer-card { padding: 5px 10px; font-size: 11px; gap: 8px; }
+      .timer-card {
+        height: 36px;
+        padding: 0 10px;
+        font-size: 11px;
+        gap: 8px;
+        display: inline-flex;
+        align-items: center;
+        box-sizing: border-box;
+      }
+      .timer-icon { width: 12px; height: 12px; }
       .lbl-full { display: none; }
-      #btn-edit { padding: 8px; width: 36px; height: 36px; justify-content: center; border-radius: 50%; }
+      #btn-edit {
+        padding: 8px;
+        width: 36px;
+        height: 36px;
+        justify-content: center;
+        border-radius: 50%;
+        box-sizing: border-box;
+      }
       #btn-edit .btn-label { display: none; }
       .top-actions { gap: 6px; }
+      .btn-icon { width: 36px; height: 36px; box-sizing: border-box; }
 
       #prompter-content {
         font-size: clamp(22px, calc(var(--font-size) * 0.65), 44px);
@@ -609,9 +629,22 @@
 
     @media (max-width: 480px) {
       #top-bar { top: 8px; left: 8px; right: 8px; }
-      .timer-card { padding: 4px 6px; font-size: 10px; gap: 5px; }
+      .timer-card {
+        height: 34px;
+        padding: 0 8px;
+        font-size: 10px;
+        gap: 5px;
+        box-sizing: border-box;
+      }
+      .timer-item { gap: 3px; }
+      .timer-icon { width: 11px; height: 11px; }
       .top-actions { gap: 4px; }
-      .btn-icon { width: 34px; height: 34px; padding: 6px; }
+      .btn-icon, #btn-edit {
+        width: 34px;
+        height: 34px;
+        padding: 6px;
+        box-sizing: border-box;
+      }
       #hud { width: calc(100% - 16px); padding: 8px 10px; bottom: 10px; gap: 8px 6px; }
       #btn-play-pause { padding: 8px 10px; font-size: 14px; }
       #group-speed input[type="range"], #group-size input[type="range"] { width: 56px; }

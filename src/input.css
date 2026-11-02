@@ -529,76 +529,128 @@
     #script-textarea::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 9999px; }
     #script-textarea::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-    .setting-section-title {
+    #settings-modal .modal-box {
+      max-width: 760px;
+      width: 92%;
+      padding: 28px 32px 24px 32px;
+    }
+    .modal-subtitle {
+      font-size: 13px;
+      color: var(--hud-subtext);
+      font-weight: 500;
+      margin-top: 3px;
+      letter-spacing: -0.01em;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+    .settings-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .setting-group-header {
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--hud-subtext);
-      margin: 16px 4px 8px 4px;
+      margin-bottom: 8px;
+      padding-left: 2px;
     }
-    .setting-section-title:first-of-type {
-      margin-top: 0;
+    .setting-card {
+      background: var(--input-bg);
+      border: 1px solid var(--btn-border);
+      border-radius: 20px;
+      padding: 0 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    [data-theme="light"] .setting-card {
+      background: rgba(255, 255, 255, 0.7);
+      border-color: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 16px -4px rgba(100, 116, 139, 0.08), inset 0 1px 1px rgba(255, 255, 255, 1);
     }
 
     .setting-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 18px;
-      margin-bottom: 10px;
-      background: var(--input-bg);
-      border: 1px solid var(--btn-border);
-      border-radius: 18px;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 12px 0;
+      gap: 12px;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      margin-bottom: 0;
+      transition: opacity 0.2s ease;
     }
-    .setting-row:hover {
-      border-color: rgba(99, 102, 241, 0.3);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    .setting-row:not(:last-child) {
+      border-bottom: 1px solid var(--btn-border);
+    }
+    [data-theme="light"] .setting-row:not(:last-child) {
+      border-bottom-color: rgba(0, 0, 0, 0.06);
+    }
+    .setting-row-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1;
     }
     .setting-label {
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 600;
       letter-spacing: -0.01em;
+      color: var(--modal-text);
+      line-height: 1.3;
     }
     .setting-subtext {
-      font-size: 12px;
+      font-size: 11.5px;
       color: var(--hud-subtext);
-      margin-top: 3px;
+      margin-top: 2px;
+      line-height: 1.25;
     }
-    .color-picker-group { display: flex; gap: 10px; }
+
+    .color-picker-group { display: flex; gap: 8px; align-items: center; }
     .color-swatch {
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
       transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     }
     .color-swatch:hover { transform: scale(1.15); }
     .color-swatch.active {
       transform: scale(1.1);
-      box-shadow: 0 0 0 3px var(--accent), 0 4px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 0 0 2.5px var(--accent), 0 3px 8px rgba(0,0,0,0.2);
     }
 
     .segmented-control {
       display: inline-flex;
-      background: var(--input-bg);
+      background: rgba(148, 163, 184, 0.12);
       padding: 3px;
       border-radius: 9999px;
       border: 1px solid var(--btn-border);
       gap: 2px;
     }
     .segmented-control .btn {
-      padding: 6px 14px;
-      font-size: 13px;
+      padding: 5px 12px;
+      font-size: 12.5px;
       font-weight: 600;
       border-radius: 9999px;
       border: none;
       background: transparent;
       color: var(--hud-subtext);
       box-shadow: none;
+      transition: all 0.2s ease;
     }
     .segmented-control .btn.btn-primary {
       background: #ffffff !important;
@@ -606,9 +658,35 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
     }
     [data-theme="dark"] .segmented-control .btn.btn-primary {
-      background: rgba(255, 255, 255, 0.16) !important;
+      background: rgba(255, 255, 255, 0.18) !important;
       color: #ffffff !important;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    .setting-card .control-group {
+      gap: 8px;
+    }
+    .setting-card .control-group input[type="range"] {
+      width: 80px;
+    }
+    .setting-card .control-group span {
+      min-width: 36px;
+      font-size: 12px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--btn-border);
+    }
+    [data-theme="light"] .modal-footer {
+      border-top-color: rgba(0, 0, 0, 0.08);
+    }
+    #btn-done-settings {
+      padding: 9px 24px;
     }
 
     #countdown-overlay {
@@ -759,16 +837,21 @@
       .control-group span { font-size: 11px; min-width: 32px; }
       #hud-hint { display: none; }
 
-      .modal-box { width: 95%; max-width: 95%; padding: 20px 16px; max-height: 90vh; border-radius: 16px; }
+      .modal-box { width: 95%; max-width: 95%; padding: 20px 16px; max-height: 90vh; border-radius: 20px; }
       .modal-header h2 { font-size: 18px; }
       #script-textarea { height: 240px; max-height: 48vh; font-size: 15px; padding: 12px; }
-      .setting-row { padding: 10px 0; gap: 8px; }
+      .settings-grid { grid-template-columns: 1fr; gap: 14px; }
+      .settings-col { gap: 14px; }
+      .setting-card { padding: 0 14px; border-radius: 18px; }
+      .setting-row { padding: 11px 0; gap: 10px; }
       .setting-label { font-size: 13px; }
       .setting-subtext { font-size: 11px; }
       .color-picker-group { gap: 6px; }
-      .color-swatch { width: 24px; height: 24px; }
-      .setting-row .control-group input[type="range"] { width: 72px; }
-      .setting-row .control-group span { min-width: 34px; font-size: 12px; }
+      .color-swatch { width: 22px; height: 22px; }
+      .setting-card .control-group input[type="range"] { width: 72px; }
+      .setting-card .control-group span { min-width: 32px; font-size: 11.5px; }
+      .modal-footer { margin-top: 16px; padding-top: 14px; }
+      #btn-done-settings { width: 100%; justify-content: center; }
       #countdown-overlay { font-size: clamp(80px, 24vw, 150px); }
     }
 

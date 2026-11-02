@@ -17,7 +17,6 @@
 
       this.btnThemeDark = document.getElementById('btn-theme-dark');
       this.btnThemeLight = document.getElementById('btn-theme-light');
-      this.colorSwatches = document.querySelectorAll('.color-swatch');
 
       this.toggleGuide = document.getElementById('toggle-guide');
       this.toggleCountdown = document.getElementById('toggle-countdown');
@@ -50,15 +49,6 @@
       if (this.btnThemeLight) {
         this.btnThemeLight.addEventListener('click', () => {
           if (this.callbacks.onSetTheme) this.callbacks.onSetTheme('light');
-        });
-      }
-
-      if (this.colorSwatches) {
-        this.colorSwatches.forEach(swatch => {
-          swatch.addEventListener('click', () => {
-            const color = swatch.getAttribute('data-color');
-            if (this.callbacks.onColorChange) this.callbacks.onColorChange(color);
-          });
         });
       }
 
@@ -168,12 +158,7 @@
       }
     },
 
-    updateColorSwatches(color) {
-      if (!this.colorSwatches) return;
-      this.colorSwatches.forEach(swatch => {
-        swatch.classList.toggle('active', swatch.getAttribute('data-color') === color);
-      });
-    },
+    updateColorSwatches() {},
 
     open() {
       this.syncUI(this.state);

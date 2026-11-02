@@ -497,12 +497,7 @@ Thank you so much for joining us today, and let us begin our journey into what c
           this.btnThemeDark.classList.add('btn-primary');
         }
       },
-      updateColorSwatches(color) {
-        if (!this.colorSwatches) return;
-        this.colorSwatches.forEach(swatch => {
-          swatch.classList.toggle('active', swatch.getAttribute('data-color') === color);
-        });
-      },
+      updateColorSwatches() {},
       open() {
         this.syncUI(this.state);
         if (this.el) this.el.classList.add('active');

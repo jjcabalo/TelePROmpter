@@ -646,21 +646,7 @@
       line-height: 1.25;
     }
 
-    .color-picker-group { display: flex; gap: 8px; align-items: center; }
-    .color-swatch {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      cursor: pointer;
-      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    }
-    .color-swatch:hover { transform: scale(1.15); }
-    .color-swatch.active {
-      transform: scale(1.1);
-      box-shadow: 0 0 0 2.5px var(--accent), 0 3px 8px rgba(0,0,0,0.2);
-    }
+
 
     .segmented-control {
       display: inline-flex;
@@ -870,8 +856,6 @@
       .setting-row { padding: 11px 0; gap: 10px; }
       .setting-label { font-size: 13px; }
       .setting-subtext { font-size: 11px; }
-      .color-picker-group { gap: 6px; }
-      .color-swatch { width: 22px; height: 22px; }
       .setting-card .control-group input[type="range"] { width: 72px; }
       .setting-card .control-group span { min-width: 32px; font-size: 11.5px; }
       .modal-footer { margin-top: 16px; }
@@ -1278,7 +1262,6 @@ Good luck with your presentation!</div>
     const lineheightVal = document.getElementById('lineheight-val');
     const btnAlignLeft = document.getElementById('btn-align-left');
     const btnAlignCenter = document.getElementById('btn-align-center');
-    const colorSwatches = document.querySelectorAll('.color-swatch');
 
     // Counters
     const elapsedTimeEl = document.getElementById('elapsed-time');
@@ -1359,18 +1342,11 @@ Good luck with your presentation!</div>
       }
 
       document.documentElement.style.setProperty('--text-color', state.textColor);
-      updateColorSwatches();
       saveState();
     }
 
     function toggleTheme() {
       applyTheme(state.theme === 'dark' ? 'light' : 'dark', true);
-    }
-
-    function updateColorSwatches() {
-      colorSwatches.forEach(swatch => {
-        swatch.classList.toggle('active', swatch.getAttribute('data-color') === state.textColor);
-      });
     }
 
     function applyStateToUI() {
@@ -1390,7 +1366,6 @@ Good luck with your presentation!</div>
       document.documentElement.style.setProperty('--line-height', state.lineHeight);
 
       document.documentElement.style.setProperty('--text-color', state.textColor);
-      updateColorSwatches();
 
       prompterContent.style.textAlign = state.textAlign;
       btnAlignLeft.classList.toggle('btn-primary', state.textAlign === 'left');
@@ -1698,15 +1673,6 @@ Good luck with your presentation!</div>
       btnAlignCenter.classList.add('btn-primary');
       btnAlignLeft.classList.remove('btn-primary');
       saveState();
-    });
-
-    colorSwatches.forEach(swatch => {
-      swatch.addEventListener('click', () => {
-        state.textColor = swatch.getAttribute('data-color');
-        document.documentElement.style.setProperty('--text-color', state.textColor);
-        updateColorSwatches();
-        saveState();
-      });
     });
 
     // Modals

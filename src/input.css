@@ -327,8 +327,14 @@ input[type="range"]::-moz-range-thumb {
   transition: background-color 0.2s ease, color 0.2s ease;
   white-space: nowrap;
 }
-.lbl-short {
-  display: none;
+.timer-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.timer-icon {
+  opacity: 0.75;
+  flex-shrink: 0;
 }
 .lbl-full {
   display: inline;
@@ -627,9 +633,6 @@ input:checked + .slider-toggle:before {
   }
   .lbl-full {
     display: none;
-  }
-  .lbl-short {
-    display: inline;
   }
   #btn-edit {
     padding: 8px;

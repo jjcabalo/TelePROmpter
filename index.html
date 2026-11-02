@@ -328,7 +328,15 @@
       transition: background-color 0.2s ease, color 0.2s ease;
       white-space: nowrap;
     }
-    .lbl-short { display: none; }
+    .timer-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .timer-icon {
+      opacity: 0.75;
+      flex-shrink: 0;
+    }
     .lbl-full { display: inline; }
     .top-actions {
       display: flex;
@@ -553,7 +561,6 @@
       #top-bar { top: 10px; left: 12px; right: 12px; gap: 8px; }
       .timer-card { padding: 5px 10px; font-size: 11px; gap: 8px; }
       .lbl-full { display: none; }
-      .lbl-short { display: inline; }
       #btn-edit { padding: 8px; width: 36px; height: 36px; justify-content: center; border-radius: 50%; }
       #btn-edit .btn-label { display: none; }
       .top-actions { gap: 6px; }
@@ -634,9 +641,35 @@
   <!-- Top Floating Status Bar -->
   <div id="top-bar">
     <div class="timer-card">
-      <div><span class="lbl-full">Time: </span><span class="lbl-short">⏱ </span><strong id="elapsed-time">00:00</strong></div>
-      <div><span class="lbl-full">Est. Left: </span><span class="lbl-short">⏳ </span><strong id="remaining-time">--:--</strong></div>
-      <div><span class="lbl-full">Words: </span><span class="lbl-short">📝 </span><strong id="word-count">0</strong></div>
+      <div class="timer-item" title="Elapsed Time">
+        <svg class="timer-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span class="lbl-full">Time: </span>
+        <strong id="elapsed-time">00:00</strong>
+      </div>
+      <div class="timer-item" title="Estimated Time Remaining">
+        <svg class="timer-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 22h14"></path>
+          <path d="M5 2h14"></path>
+          <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path>
+          <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path>
+        </svg>
+        <span class="lbl-full">Est. Left: </span>
+        <strong id="remaining-time">--:--</strong>
+      </div>
+      <div class="timer-item" title="Word Count">
+        <svg class="timer-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <line x1="10" y1="9" x2="8" y2="9"></line>
+        </svg>
+        <span class="lbl-full">Words: </span>
+        <strong id="word-count">0</strong>
+      </div>
     </div>
     <div class="top-actions">
       <!-- Dark / Light Mode Toggle Button -->

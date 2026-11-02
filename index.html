@@ -707,12 +707,7 @@
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      margin-top: 22px;
-      padding-top: 16px;
-      border-top: 1px solid var(--btn-border);
-    }
-    [data-theme="light"] .modal-footer {
-      border-top-color: rgba(0, 0, 0, 0.08);
+      margin-top: 20px;
     }
     #btn-done-settings {
       padding: 9px 24px;
@@ -879,7 +874,7 @@
       .color-swatch { width: 22px; height: 22px; }
       .setting-card .control-group input[type="range"] { width: 72px; }
       .setting-card .control-group span { min-width: 32px; font-size: 11.5px; }
-      .modal-footer { margin-top: 16px; padding-top: 14px; }
+      .modal-footer { margin-top: 16px; }
       #btn-done-settings { width: 100%; justify-content: center; }
       #countdown-overlay { font-size: clamp(80px, 24vw, 150px); }
     }
@@ -1076,10 +1071,10 @@ Good luck with your presentation!</div>
       </div>
 
       <div class="settings-grid">
-        <!-- Left Column -->
+        <!-- Left Column: Appearance & Spacing -->
         <div class="settings-col">
           <div class="setting-group">
-            <div class="setting-group-header">Theme &amp; Typography</div>
+            <div class="setting-group-header">Theme &amp; Alignment</div>
             <div class="setting-card">
               <!-- Theme Setting -->
               <div class="setting-row">
@@ -1090,21 +1085,6 @@ Good luck with your presentation!</div>
                 <div class="segmented-control">
                   <button class="btn" id="btn-theme-dark">Dark</button>
                   <button class="btn" id="btn-theme-light">Light</button>
-                </div>
-              </div>
-
-              <!-- Text Color Setting -->
-              <div class="setting-row">
-                <div class="setting-row-text">
-                  <div class="setting-label">Text Color</div>
-                  <div class="setting-subtext">High contrast tints</div>
-                </div>
-                <div class="color-picker-group">
-                  <div class="color-swatch active" data-color="#ffffff" style="background:#ffffff;" title="White"></div>
-                  <div class="color-swatch" data-color="#0f172a" style="background:#0f172a;" title="Charcoal"></div>
-                  <div class="color-swatch" data-color="#38bdf8" style="background:#38bdf8;" title="Sky Blue"></div>
-                  <div class="color-swatch" data-color="#facc15" style="background:#facc15;" title="Warm Yellow"></div>
-                  <div class="color-swatch" data-color="#4ade80" style="background:#4ade80;" title="Soft Green"></div>
                 </div>
               </div>
 
@@ -1123,24 +1103,36 @@ Good luck with your presentation!</div>
           </div>
 
           <div class="setting-group">
-            <div class="setting-group-header">Rig &amp; Hardware</div>
+            <div class="setting-group-header">Layout &amp; Spacing</div>
             <div class="setting-card">
-              <!-- Vertical Flip -->
+              <!-- Content Width -->
               <div class="setting-row">
                 <div class="setting-row-text">
-                  <div class="setting-label">Vertical Flip</div>
-                  <div class="setting-subtext">Invert for upside-down monitor rigs</div>
+                  <div class="setting-label">Content Width</div>
+                  <div class="setting-subtext">Reading column maximum width</div>
                 </div>
-                <label class="switch">
-                  <input type="checkbox" id="toggle-flip-v">
-                  <span class="slider-toggle"></span>
-                </label>
+                <div class="control-group">
+                  <input type="range" id="width-slider" min="500" max="1400" step="50" value="900">
+                  <span id="width-val">900px</span>
+                </div>
+              </div>
+
+              <!-- Line Height -->
+              <div class="setting-row">
+                <div class="setting-row-text">
+                  <div class="setting-label">Line Spacing</div>
+                  <div class="setting-subtext">Vertical gap between lines</div>
+                </div>
+                <div class="control-group">
+                  <input type="range" id="lineheight-slider" min="1.2" max="2.2" step="0.1" value="1.5">
+                  <span id="lineheight-val">1.5</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Right Column -->
+        <!-- Right Column: Aids & Rig -->
         <div class="settings-col">
           <div class="setting-group">
             <div class="setting-group-header">Reading Aids &amp; Timing</div>
@@ -1184,30 +1176,18 @@ Good luck with your presentation!</div>
           </div>
 
           <div class="setting-group">
-            <div class="setting-group-header">Layout &amp; Spacing</div>
+            <div class="setting-group-header">Rig &amp; Hardware</div>
             <div class="setting-card">
-              <!-- Content Width -->
+              <!-- Vertical Flip -->
               <div class="setting-row">
                 <div class="setting-row-text">
-                  <div class="setting-label">Content Width</div>
-                  <div class="setting-subtext">Reading column maximum width</div>
+                  <div class="setting-label">Vertical Flip</div>
+                  <div class="setting-subtext">Invert for upside-down monitor rigs</div>
                 </div>
-                <div class="control-group">
-                  <input type="range" id="width-slider" min="500" max="1400" step="50" value="900">
-                  <span id="width-val">900px</span>
-                </div>
-              </div>
-
-              <!-- Line Height -->
-              <div class="setting-row">
-                <div class="setting-row-text">
-                  <div class="setting-label">Line Spacing</div>
-                  <div class="setting-subtext">Vertical gap between lines</div>
-                </div>
-                <div class="control-group">
-                  <input type="range" id="lineheight-slider" min="1.2" max="2.2" step="0.1" value="1.5">
-                  <span id="lineheight-val">1.5</span>
-                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-flip-v">
+                  <span class="slider-toggle"></span>
+                </label>
               </div>
             </div>
           </div>
@@ -1333,7 +1313,7 @@ Good luck with your presentation!</div>
         console.error('Failed to load settings:', e);
       }
 
-      applyTheme(state.theme, false);
+      applyTheme(state.theme, true);
       applyStateToUI();
       updateStats();
     }
@@ -1369,17 +1349,13 @@ Good luck with your presentation!</div>
         themeMoonIcon.style.display = 'inline';
         btnThemeDark.classList.remove('btn-primary');
         btnThemeLight.classList.add('btn-primary');
-        if (autoAdjustTextColor && state.textColor === '#ffffff') {
-          state.textColor = '#0f172a';
-        }
+        state.textColor = '#0f172a';
       } else {
         themeSunIcon.style.display = 'inline';
         themeMoonIcon.style.display = 'none';
         btnThemeLight.classList.remove('btn-primary');
         btnThemeDark.classList.add('btn-primary');
-        if (autoAdjustTextColor && state.textColor === '#0f172a') {
-          state.textColor = '#ffffff';
-        }
+        state.textColor = '#ffffff';
       }
 
       document.documentElement.style.setProperty('--text-color', state.textColor);

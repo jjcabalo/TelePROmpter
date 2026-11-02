@@ -316,6 +316,33 @@ input[type="range"]::-moz-range-thumb {
   pointer-events: auto;
   align-items: center;
 }
+.top-actions .btn {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--card-border);
+  color: var(--hud-text);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease, box-shadow 0.2s ease;
+}
+.top-actions .btn:hover {
+  background: var(--hud-bg);
+  border-color: rgba(37, 99, 235, 0.45);
+  color: var(--hud-text);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+[data-theme="light"] .top-actions .btn {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--hud-text);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .top-actions .btn:hover {
+  background: #ffffff;
+  border-color: rgba(37, 99, 235, 0.45);
+  color: var(--hud-text);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
 
 /* Modals Backdrop & Box */
 #settings-modal, #editor-modal {
